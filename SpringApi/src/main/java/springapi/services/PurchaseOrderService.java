@@ -278,13 +278,9 @@ public class PurchaseOrderService extends BaseService implements PurchaseOrderSu
   @Transactional
   public void createPurchaseOrder(PurchaseOrderRequestModel purchaseOrderRequestModel) {
     // Delegate to common method with current security context
+    // shouldLog = true for singular operations.
     createPurchaseOrderWithContext(
-        purchaseOrderRequestModel,
-        getUser(),
-        getClientId(),
-        getUserId(),
-        true // shouldLog = true for singular operations
-        );
+        purchaseOrderRequestModel, getUser(), getClientId(), getUserId(), true);
   }
 
   /**

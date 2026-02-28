@@ -34,20 +34,7 @@ class UpdateTodoTest extends TodoServiceTestBase {
   @Test
   @DisplayName("updateTodo - Max Length Task - Success")
   void updateTodo_maxLengthTask_success() {
-    // Arrange
-    TodoRequestModel request = new TodoRequestModel();
-    request.setTodoId(TEST_TODO_ID);
-    request.setTask("A".repeat(500));
-    request.setIsDone(false);
-    stubTodoRepositoryFindById(TEST_TODO_ID, Optional.of(testTodo));
-    stubTodoRepositorySave(testTodo);
-    stubUserLogServiceLogDataReturnsTrue();
-
-    // Act
-    assertDoesNotThrow(() -> todoService.updateTodo(request));
-
-    // Assert
-    verify(todoRepository).save(any(Todo.class));
+    assertUpdateTodoSuccess("A".repeat(500), false);
   }
 
   /*
@@ -58,20 +45,7 @@ class UpdateTodoTest extends TodoServiceTestBase {
   @Test
   @DisplayName("updateTodo - Special Chars In Task - Success")
   void updateTodo_specialCharsInTask_success() {
-    // Arrange
-    TodoRequestModel request = new TodoRequestModel();
-    request.setTodoId(TEST_TODO_ID);
-    request.setTask("Updated @#$%^&*()!");
-    request.setIsDone(true);
-    stubTodoRepositoryFindById(TEST_TODO_ID, Optional.of(testTodo));
-    stubTodoRepositorySave(testTodo);
-    stubUserLogServiceLogDataReturnsTrue();
-
-    // Act
-    assertDoesNotThrow(() -> todoService.updateTodo(request));
-
-    // Assert
-    verify(todoRepository).save(any(Todo.class));
+    assertUpdateTodoSuccess("Updated @#$%^&*()!", true);
   }
 
   /*
@@ -112,20 +86,7 @@ class UpdateTodoTest extends TodoServiceTestBase {
   @Test
   @DisplayName("updateTodo - Toggle IsDone To False - Success")
   void updateTodo_toggleIsDoneToFalse_success() {
-    // Arrange
-    TodoRequestModel request = new TodoRequestModel();
-    request.setTodoId(TEST_TODO_ID);
-    request.setTask("Updated");
-    request.setIsDone(false);
-    stubTodoRepositoryFindById(TEST_TODO_ID, Optional.of(testTodo));
-    stubTodoRepositorySave(testTodo);
-    stubUserLogServiceLogDataReturnsTrue();
-
-    // Act
-    todoService.updateTodo(request);
-
-    // Assert
-    verify(todoRepository).save(any(Todo.class));
+    assertUpdateTodoSuccess("Updated", false);
   }
 
   /*
@@ -136,20 +97,7 @@ class UpdateTodoTest extends TodoServiceTestBase {
   @Test
   @DisplayName("updateTodo - Valid Request - Success")
   void updateTodo_validRequest_success() {
-    // Arrange
-    TodoRequestModel request = new TodoRequestModel();
-    request.setTodoId(TEST_TODO_ID);
-    request.setTask("Updated");
-    request.setIsDone(false);
-    stubTodoRepositoryFindById(TEST_TODO_ID, Optional.of(testTodo));
-    stubTodoRepositorySave(testTodo);
-    stubUserLogServiceLogDataReturnsTrue();
-
-    // Act
-    assertDoesNotThrow(() -> todoService.updateTodo(request));
-
-    // Assert
-    verify(todoRepository).save(any(Todo.class));
+    assertUpdateTodoSuccess("Updated", false);
   }
 
   /*
@@ -418,6 +366,23 @@ class UpdateTodoTest extends TodoServiceTestBase {
 
     // Assert
     assertEquals(ErrorMessages.TodoErrorMessages.INVALID_ID, ex.getMessage());
+  }
+
+  private void assertUpdateTodoSuccess(String task, boolean isDone) {
+    // Arrange
+    TodoRequestModel request = new TodoRequestModel();
+    request.setTodoId(TEST_TODO_ID);
+    request.setTask(task);
+    request.setIsDone(isDone);
+    stubTodoRepositoryFindById(TEST_TODO_ID, Optional.of(testTodo));
+    stubTodoRepositorySave(testTodo);
+    stubUserLogServiceLogDataReturnsTrue();
+
+    // Act
+    assertDoesNotThrow(() -> todoService.updateTodo(request));
+
+    // Assert
+    verify(todoRepository).save(any(Todo.class));
   }
 
   // ========================================

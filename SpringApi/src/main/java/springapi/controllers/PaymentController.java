@@ -5,7 +5,6 @@ import freemarker.template.TemplateException;
 import java.io.IOException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -15,7 +14,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import springapi.ErrorMessages;
 import springapi.exceptions.BadRequestException;
 import springapi.exceptions.NotFoundException;
 import springapi.exceptions.UnauthorizedException;
@@ -25,7 +23,6 @@ import springapi.models.requestmodels.CashPaymentRequestModel;
 import springapi.models.requestmodels.ProcessPaymentAndShipmentRequestModel;
 import springapi.models.requestmodels.RazorpayOrderRequestModel;
 import springapi.models.requestmodels.RazorpayVerifyRequestModel;
-import springapi.models.responsemodels.ErrorResponseModel;
 import springapi.models.responsemodels.PaymentVerificationResponseModel;
 import springapi.models.responsemodels.RazorpayOrderResponseModel;
 import springapi.services.ShippingService;
@@ -42,7 +39,7 @@ import springapi.services.interfaces.PaymentSubTranslator;
  */
 @RestController
 @RequestMapping("/api/Payment")
-public class PaymentController {
+public class PaymentController extends BaseController {
 
   private static final ContextualLogger logger =
       ContextualLogger.getLogger(PaymentController.class);
@@ -74,35 +71,13 @@ public class PaymentController {
       RazorpayOrderResponseModel response = paymentService.createOrder(request);
       return ResponseEntity.ok(response);
     } catch (BadRequestException bre) {
-      logger.error(bre);
-      return ResponseEntity.badRequest()
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_BAD_REQUEST,
-                  bre.getMessage(),
-                  HttpStatus.BAD_REQUEST.value()));
+      return badRequest(logger, bre);
     } catch (NotFoundException nfe) {
-      logger.error(nfe);
-      return ResponseEntity.status(HttpStatus.NOT_FOUND)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
+      return notFound(logger, nfe);
     } catch (UnauthorizedException uae) {
-      logger.error(uae);
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_UNAUTHORIZED,
-                  uae.getMessage(),
-                  HttpStatus.UNAUTHORIZED.value()));
+      return unauthorized(logger, uae);
     } catch (Exception e) {
-      logger.error(e);
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_INTERNAL_SERVER_ERROR,
-                  e.getMessage(),
-                  HttpStatus.INTERNAL_SERVER_ERROR.value()));
+      return internalServerError(logger, e);
     }
   }
 
@@ -123,35 +98,13 @@ public class PaymentController {
       RazorpayOrderResponseModel response = paymentService.createOrderFollowUp(request);
       return ResponseEntity.ok(response);
     } catch (BadRequestException bre) {
-      logger.error(bre);
-      return ResponseEntity.badRequest()
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_BAD_REQUEST,
-                  bre.getMessage(),
-                  HttpStatus.BAD_REQUEST.value()));
+      return badRequest(logger, bre);
     } catch (NotFoundException nfe) {
-      logger.error(nfe);
-      return ResponseEntity.status(HttpStatus.NOT_FOUND)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
+      return notFound(logger, nfe);
     } catch (UnauthorizedException uae) {
-      logger.error(uae);
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_UNAUTHORIZED,
-                  uae.getMessage(),
-                  HttpStatus.UNAUTHORIZED.value()));
+      return unauthorized(logger, uae);
     } catch (Exception e) {
-      logger.error(e);
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_INTERNAL_SERVER_ERROR,
-                  e.getMessage(),
-                  HttpStatus.INTERNAL_SERVER_ERROR.value()));
+      return internalServerError(logger, e);
     }
   }
 
@@ -178,35 +131,13 @@ public class PaymentController {
         return ResponseEntity.badRequest().body(response);
       }
     } catch (BadRequestException bre) {
-      logger.error(bre);
-      return ResponseEntity.badRequest()
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_BAD_REQUEST,
-                  bre.getMessage(),
-                  HttpStatus.BAD_REQUEST.value()));
+      return badRequest(logger, bre);
     } catch (NotFoundException nfe) {
-      logger.error(nfe);
-      return ResponseEntity.status(HttpStatus.NOT_FOUND)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
+      return notFound(logger, nfe);
     } catch (UnauthorizedException uae) {
-      logger.error(uae);
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_UNAUTHORIZED,
-                  uae.getMessage(),
-                  HttpStatus.UNAUTHORIZED.value()));
+      return unauthorized(logger, uae);
     } catch (Exception e) {
-      logger.error(e);
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_INTERNAL_SERVER_ERROR,
-                  e.getMessage(),
-                  HttpStatus.INTERNAL_SERVER_ERROR.value()));
+      return internalServerError(logger, e);
     }
   }
 
@@ -223,13 +154,7 @@ public class PaymentController {
     try {
       return ResponseEntity.ok(paymentService.getRazorpayKeyId());
     } catch (Exception e) {
-      logger.error(e);
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_INTERNAL_SERVER_ERROR,
-                  e.getMessage(),
-                  HttpStatus.INTERNAL_SERVER_ERROR.value()));
+      return internalServerError(logger, e);
     }
   }
 
@@ -257,35 +182,13 @@ public class PaymentController {
         return ResponseEntity.badRequest().body(response);
       }
     } catch (BadRequestException bre) {
-      logger.error(bre);
-      return ResponseEntity.badRequest()
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_BAD_REQUEST,
-                  bre.getMessage(),
-                  HttpStatus.BAD_REQUEST.value()));
+      return badRequest(logger, bre);
     } catch (NotFoundException nfe) {
-      logger.error(nfe);
-      return ResponseEntity.status(HttpStatus.NOT_FOUND)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
+      return notFound(logger, nfe);
     } catch (UnauthorizedException uae) {
-      logger.error(uae);
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_UNAUTHORIZED,
-                  uae.getMessage(),
-                  HttpStatus.UNAUTHORIZED.value()));
+      return unauthorized(logger, uae);
     } catch (Exception e) {
-      logger.error(e);
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_INTERNAL_SERVER_ERROR,
-                  e.getMessage(),
-                  HttpStatus.INTERNAL_SERVER_ERROR.value()));
+      return internalServerError(logger, e);
     }
   }
 
@@ -336,35 +239,13 @@ public class PaymentController {
         return ResponseEntity.badRequest().body(response);
       }
     } catch (BadRequestException bre) {
-      logger.error(bre);
-      return ResponseEntity.badRequest()
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_BAD_REQUEST,
-                  bre.getMessage(),
-                  HttpStatus.BAD_REQUEST.value()));
+      return badRequest(logger, bre);
     } catch (NotFoundException nfe) {
-      logger.error(nfe);
-      return ResponseEntity.status(HttpStatus.NOT_FOUND)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
+      return notFound(logger, nfe);
     } catch (UnauthorizedException uae) {
-      logger.error(uae);
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_UNAUTHORIZED,
-                  uae.getMessage(),
-                  HttpStatus.UNAUTHORIZED.value()));
+      return unauthorized(logger, uae);
     } catch (Exception e) {
-      logger.error(e);
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_INTERNAL_SERVER_ERROR,
-                  e.getMessage(),
-                  HttpStatus.INTERNAL_SERVER_ERROR.value()));
+      return internalServerError(logger, e);
     }
   }
 
@@ -390,35 +271,13 @@ public class PaymentController {
         return ResponseEntity.badRequest().body(response);
       }
     } catch (BadRequestException bre) {
-      logger.error(bre);
-      return ResponseEntity.badRequest()
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_BAD_REQUEST,
-                  bre.getMessage(),
-                  HttpStatus.BAD_REQUEST.value()));
+      return badRequest(logger, bre);
     } catch (NotFoundException nfe) {
-      logger.error(nfe);
-      return ResponseEntity.status(HttpStatus.NOT_FOUND)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
+      return notFound(logger, nfe);
     } catch (UnauthorizedException uae) {
-      logger.error(uae);
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_UNAUTHORIZED,
-                  uae.getMessage(),
-                  HttpStatus.UNAUTHORIZED.value()));
+      return unauthorized(logger, uae);
     } catch (Exception e) {
-      logger.error(e);
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_INTERNAL_SERVER_ERROR,
-                  e.getMessage(),
-                  HttpStatus.INTERNAL_SERVER_ERROR.value()));
+      return internalServerError(logger, e);
     }
   }
 
@@ -444,35 +303,13 @@ public class PaymentController {
         return ResponseEntity.badRequest().body(response);
       }
     } catch (BadRequestException bre) {
-      logger.error(bre);
-      return ResponseEntity.badRequest()
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_BAD_REQUEST,
-                  bre.getMessage(),
-                  HttpStatus.BAD_REQUEST.value()));
+      return badRequest(logger, bre);
     } catch (NotFoundException nfe) {
-      logger.error(nfe);
-      return ResponseEntity.status(HttpStatus.NOT_FOUND)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
+      return notFound(logger, nfe);
     } catch (UnauthorizedException uae) {
-      logger.error(uae);
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_UNAUTHORIZED,
-                  uae.getMessage(),
-                  HttpStatus.UNAUTHORIZED.value()));
+      return unauthorized(logger, uae);
     } catch (Exception e) {
-      logger.error(e);
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_INTERNAL_SERVER_ERROR,
-                  e.getMessage(),
-                  HttpStatus.INTERNAL_SERVER_ERROR.value()));
+      return internalServerError(logger, e);
     }
   }
 
@@ -496,35 +333,13 @@ public class PaymentController {
 
       return ResponseEntity.ok().headers(headers).body(pdfBytes);
     } catch (BadRequestException bre) {
-      logger.error(bre);
-      return ResponseEntity.badRequest()
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_BAD_REQUEST,
-                  bre.getMessage(),
-                  HttpStatus.BAD_REQUEST.value()));
+      return badRequest(logger, bre);
     } catch (NotFoundException nfe) {
-      logger.error(nfe);
-      return ResponseEntity.status(HttpStatus.NOT_FOUND)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
+      return notFound(logger, nfe);
     } catch (TemplateException | IOException | DocumentException e) {
-      logger.error(e);
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_INTERNAL_SERVER_ERROR,
-                  "Failed to generate payment receipt PDF: " + e.getMessage(),
-                  HttpStatus.INTERNAL_SERVER_ERROR.value()));
+      return internalServerError(logger, e);
     } catch (Exception e) {
-      logger.error(e);
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_INTERNAL_SERVER_ERROR,
-                  e.getMessage(),
-                  HttpStatus.INTERNAL_SERVER_ERROR.value()));
+      return internalServerError(logger, e);
     }
   }
 }

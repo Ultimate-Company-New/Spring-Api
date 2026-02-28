@@ -347,7 +347,7 @@ class RecordCashPaymentFollowUpTest extends PaymentServiceTestBase {
     verify(paymentRepository, times(1)).save(paymentCaptor.capture());
     Payment savedPayment = paymentCaptor.getValue();
     assertEquals(Payment.PaymentMethod.UPI.getValue(), savedPayment.getPaymentMethod());
-    assertTrue(Boolean.TRUE.equals(savedPayment.getIsTestPayment()));
+    assertEquals(Boolean.TRUE, savedPayment.getIsTestPayment());
     assertTrue(response.isSuccess());
     assertEquals(PurchaseOrder.Status.APPROVED.getValue(), response.getPurchaseOrderStatus());
   }
@@ -381,7 +381,7 @@ class RecordCashPaymentFollowUpTest extends PaymentServiceTestBase {
     verify(paymentRepository, times(1)).save(paymentCaptor.capture());
     Payment savedPayment = paymentCaptor.getValue();
     assertEquals(Payment.PaymentMethod.CASH.getValue(), savedPayment.getPaymentMethod());
-    assertTrue(Boolean.FALSE.equals(savedPayment.getIsTestPayment()));
+    assertEquals(Boolean.FALSE, savedPayment.getIsTestPayment());
     assertTrue(response.isSuccess());
     assertEquals(PurchaseOrder.Status.APPROVED.getValue(), response.getPurchaseOrderStatus());
   }

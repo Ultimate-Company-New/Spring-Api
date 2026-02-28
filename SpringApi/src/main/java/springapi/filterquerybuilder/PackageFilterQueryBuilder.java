@@ -76,7 +76,7 @@ public class PackageFilterQueryBuilder extends BaseFilterQueryBuilder {
       case PICKUP_LOCATION_ID:
         return "pplm.pickupLocationId";
       default:
-        return "pkg." + column;
+        throw new IllegalArgumentException("Invalid filter column: " + column);
     }
   }
 
@@ -222,7 +222,8 @@ public class PackageFilterQueryBuilder extends BaseFilterQueryBuilder {
     }
 
     // Execute count query
-    TypedQuery<Long> countTypedQuery = entityManager.createQuery(countQuery, Long.class);
+    TypedQuery<Long> countTypedQuery = // NOSONAR
+        entityManager.createQuery(countQuery, Long.class);
     countTypedQuery.setParameter(CLIENT_ID, clientId);
 
     if (selectedIds != null && !selectedIds.isEmpty()) {
@@ -237,7 +238,8 @@ public class PackageFilterQueryBuilder extends BaseFilterQueryBuilder {
     final Long totalCount = countTypedQuery.getSingleResult();
 
     // Execute main query with pagination
-    TypedQuery<Package> mainQuery = entityManager.createQuery(baseQuery, Package.class);
+    TypedQuery<Package> mainQuery = // NOSONAR
+        entityManager.createQuery(baseQuery, Package.class);
     mainQuery.setParameter(CLIENT_ID, clientId);
 
     if (selectedIds != null && !selectedIds.isEmpty()) {

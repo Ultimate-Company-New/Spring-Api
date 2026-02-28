@@ -61,7 +61,7 @@ public class PromoFilterQueryBuilder extends BaseFilterQueryBuilder {
       case "updatedAt":
         return "p.updatedAt";
       default:
-        return "p." + column;
+        throw new IllegalArgumentException("Invalid filter column: " + column);
     }
   }
 
@@ -160,7 +160,8 @@ public class PromoFilterQueryBuilder extends BaseFilterQueryBuilder {
     }
 
     // Execute count query
-    TypedQuery<Long> countTypedQuery = entityManager.createQuery(countQuery, Long.class);
+    TypedQuery<Long> countTypedQuery = // NOSONAR
+        entityManager.createQuery(countQuery, Long.class);
     countTypedQuery.setParameter(CLIENT_ID, clientId);
 
     if (selectedIds != null && !selectedIds.isEmpty()) {
@@ -175,7 +176,8 @@ public class PromoFilterQueryBuilder extends BaseFilterQueryBuilder {
     final Long totalCount = countTypedQuery.getSingleResult();
 
     // Execute main query with pagination
-    TypedQuery<Promo> mainQuery = entityManager.createQuery(baseQuery, Promo.class);
+    TypedQuery<Promo> mainQuery = // NOSONAR
+        entityManager.createQuery(baseQuery, Promo.class);
     mainQuery.setParameter(CLIENT_ID, clientId);
 
     if (selectedIds != null && !selectedIds.isEmpty()) {

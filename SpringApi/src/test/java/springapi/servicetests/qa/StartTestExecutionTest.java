@@ -432,19 +432,8 @@ class StartTestExecutionTest extends QAServiceTestBase {
    */
   @Test
   void startTestExecution_exceptionMessages_useErrorConstants() {
-    // Arrange - null request
     // Act & Assert
-    BadRequestException exception =
-        assertThrows(
-            BadRequestException.class,
-            () -> {
-              qaService.startTestExecution(null);
-            });
-
-    // Verify the exception message comes from ErrorMessages constants
-    assertEquals(
-        ErrorMessages.QaErrorMessages.TEST_EXECUTION_REQUEST_CANNOT_BE_NULL,
-        exception.getMessage());
+    assertNullRequestThrowsBadRequest();
   }
 
   /**
@@ -573,18 +562,8 @@ class StartTestExecutionTest extends QAServiceTestBase {
    */
   @Test
   void startTestExecution_nullRequest_throwsBadRequestException() {
-    // Arrange
-
     // Act & Assert
-    BadRequestException exception =
-        assertThrows(
-            BadRequestException.class,
-            () -> {
-              qaService.startTestExecution(null);
-            });
-    assertEquals(
-        ErrorMessages.QaErrorMessages.TEST_EXECUTION_REQUEST_CANNOT_BE_NULL,
-        exception.getMessage());
+    assertNullRequestThrowsBadRequest();
   }
 
   /**
@@ -1682,14 +1661,6 @@ class StartTestExecutionTest extends QAServiceTestBase {
     putMethod.invoke(activeExecutionsObj, executionId, status);
   }
 
-  private Throwable getRootCause(Throwable exception) {
-    Throwable current = exception;
-    while (current.getCause() != null) {
-      current = current.getCause();
-    }
-    return current;
-  }
-
   private <T extends Throwable> T findCause(Throwable exception, Class<T> causeType) {
     Throwable current = exception;
     while (current != null) {
@@ -1699,6 +1670,18 @@ class StartTestExecutionTest extends QAServiceTestBase {
       current = current.getCause();
     }
     return null;
+  }
+
+  private void assertNullRequestThrowsBadRequest() {
+    BadRequestException exception =
+        assertThrows(
+            BadRequestException.class,
+            () -> {
+              qaService.startTestExecution(null);
+            });
+    assertEquals(
+        ErrorMessages.QaErrorMessages.TEST_EXECUTION_REQUEST_CANNOT_BE_NULL,
+        exception.getMessage());
   }
 
   /*

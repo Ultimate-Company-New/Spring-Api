@@ -3,7 +3,6 @@ package springapi.controllers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,7 +11,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import springapi.ErrorMessages;
 import springapi.exceptions.BadRequestException;
 import springapi.exceptions.NotFoundException;
 import springapi.exceptions.UnauthorizedException;
@@ -22,7 +20,6 @@ import springapi.models.Authorizations;
 import springapi.models.requestmodels.CreateReturnRequestModel;
 import springapi.models.requestmodels.OrderOptimizationRequestModel;
 import springapi.models.requestmodels.ShippingCalculationRequestModel;
-import springapi.models.responsemodels.ErrorResponseModel;
 import springapi.models.responsemodels.OrderOptimizationResponseModel;
 import springapi.models.responsemodels.ReturnShipmentResponseModel;
 import springapi.models.responsemodels.ShippingCalculationResponseModel;
@@ -41,7 +38,7 @@ import springapi.services.interfaces.ShippingSubTranslator;
  */
 @RestController
 @RequestMapping("/api/" + ApiRoutes.ApiControllerNames.SHIPPING)
-public class ShippingController {
+public class ShippingController extends BaseController {
 
   private static final ContextualLogger contextualLogger =
       ContextualLogger.getLogger(ShippingController.class);
@@ -69,35 +66,13 @@ public class ShippingController {
       ShippingCalculationResponseModel response = shippingService.calculateShipping(request);
       return ResponseEntity.ok(response);
     } catch (BadRequestException bre) {
-      contextualLogger.error(bre);
-      return ResponseEntity.badRequest()
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_BAD_REQUEST,
-                  bre.getMessage(),
-                  HttpStatus.BAD_REQUEST.value()));
+      return badRequest(contextualLogger, bre);
     } catch (NotFoundException nfe) {
-      contextualLogger.error(nfe);
-      return ResponseEntity.status(HttpStatus.NOT_FOUND)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
+      return notFound(contextualLogger, nfe);
     } catch (UnauthorizedException ue) {
-      contextualLogger.error(ue);
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_UNAUTHORIZED,
-                  ue.getMessage(),
-                  HttpStatus.UNAUTHORIZED.value()));
+      return unauthorized(contextualLogger, ue);
     } catch (Exception e) {
-      contextualLogger.error(e);
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_INTERNAL_SERVER_ERROR,
-                  e.getMessage(),
-                  HttpStatus.INTERNAL_SERVER_ERROR.value()));
+      return internalServerError(contextualLogger, e);
     }
   }
 
@@ -125,10 +100,11 @@ public class ShippingController {
     long startTime = System.currentTimeMillis();
     int productCount =
         request.getProductQuantities() != null ? request.getProductQuantities().size() : 0;
+    String safeDeliveryPostcode = sanitizeForLog(request.getDeliveryPostcode());
     logger.info(
         "Received optimizeOrder request for {} products, delivery postcode: {}",
         productCount,
-        request.getDeliveryPostcode());
+        safeDeliveryPostcode);
     try {
       OrderOptimizationResponseModel response = shippingService.optimizeOrder(request);
       long duration = System.currentTimeMillis() - startTime;
@@ -137,35 +113,13 @@ public class ShippingController {
     } catch (BadRequestException bre) {
       long duration = System.currentTimeMillis() - startTime;
       logger.error("optimizeOrder failed after {}ms: BadRequestException", duration);
-      contextualLogger.error(bre);
-      return ResponseEntity.badRequest()
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_BAD_REQUEST,
-                  bre.getMessage(),
-                  HttpStatus.BAD_REQUEST.value()));
+      return badRequest(contextualLogger, bre);
     } catch (NotFoundException nfe) {
-      contextualLogger.error(nfe);
-      return ResponseEntity.status(HttpStatus.NOT_FOUND)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
+      return notFound(contextualLogger, nfe);
     } catch (UnauthorizedException ue) {
-      contextualLogger.error(ue);
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_UNAUTHORIZED,
-                  ue.getMessage(),
-                  HttpStatus.UNAUTHORIZED.value()));
+      return unauthorized(contextualLogger, ue);
     } catch (Exception e) {
-      contextualLogger.error(e);
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_INTERNAL_SERVER_ERROR,
-                  e.getMessage(),
-                  HttpStatus.INTERNAL_SERVER_ERROR.value()));
+      return internalServerError(contextualLogger, e);
     }
   }
 
@@ -184,35 +138,13 @@ public class ShippingController {
       shippingService.cancelShipment(shipmentId);
       return ResponseEntity.ok().build();
     } catch (BadRequestException bre) {
-      contextualLogger.error(bre);
-      return ResponseEntity.badRequest()
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_BAD_REQUEST,
-                  bre.getMessage(),
-                  HttpStatus.BAD_REQUEST.value()));
+      return badRequest(contextualLogger, bre);
     } catch (NotFoundException nfe) {
-      contextualLogger.error(nfe);
-      return ResponseEntity.status(HttpStatus.NOT_FOUND)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
+      return notFound(contextualLogger, nfe);
     } catch (UnauthorizedException ue) {
-      contextualLogger.error(ue);
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_UNAUTHORIZED,
-                  ue.getMessage(),
-                  HttpStatus.UNAUTHORIZED.value()));
+      return unauthorized(contextualLogger, ue);
     } catch (Exception e) {
-      contextualLogger.error(e);
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_INTERNAL_SERVER_ERROR,
-                  e.getMessage(),
-                  HttpStatus.INTERNAL_SERVER_ERROR.value()));
+      return internalServerError(contextualLogger, e);
     }
   }
 
@@ -231,35 +163,13 @@ public class ShippingController {
       ReturnShipmentResponseModel response = shippingService.createReturn(request);
       return ResponseEntity.ok(response);
     } catch (BadRequestException bre) {
-      contextualLogger.error(bre);
-      return ResponseEntity.badRequest()
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_BAD_REQUEST,
-                  bre.getMessage(),
-                  HttpStatus.BAD_REQUEST.value()));
+      return badRequest(contextualLogger, bre);
     } catch (NotFoundException nfe) {
-      contextualLogger.error(nfe);
-      return ResponseEntity.status(HttpStatus.NOT_FOUND)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
+      return notFound(contextualLogger, nfe);
     } catch (UnauthorizedException ue) {
-      contextualLogger.error(ue);
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_UNAUTHORIZED,
-                  ue.getMessage(),
-                  HttpStatus.UNAUTHORIZED.value()));
+      return unauthorized(contextualLogger, ue);
     } catch (Exception e) {
-      contextualLogger.error(e);
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_INTERNAL_SERVER_ERROR,
-                  e.getMessage(),
-                  HttpStatus.INTERNAL_SERVER_ERROR.value()));
+      return internalServerError(contextualLogger, e);
     }
   }
 
@@ -278,35 +188,13 @@ public class ShippingController {
       shippingService.cancelReturnShipment(returnShipmentId);
       return ResponseEntity.ok().build();
     } catch (BadRequestException bre) {
-      contextualLogger.error(bre);
-      return ResponseEntity.badRequest()
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_BAD_REQUEST,
-                  bre.getMessage(),
-                  HttpStatus.BAD_REQUEST.value()));
+      return badRequest(contextualLogger, bre);
     } catch (NotFoundException nfe) {
-      contextualLogger.error(nfe);
-      return ResponseEntity.status(HttpStatus.NOT_FOUND)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
+      return notFound(contextualLogger, nfe);
     } catch (UnauthorizedException ue) {
-      contextualLogger.error(ue);
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_UNAUTHORIZED,
-                  ue.getMessage(),
-                  HttpStatus.UNAUTHORIZED.value()));
+      return unauthorized(contextualLogger, ue);
     } catch (Exception e) {
-      contextualLogger.error(e);
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_INTERNAL_SERVER_ERROR,
-                  e.getMessage(),
-                  HttpStatus.INTERNAL_SERVER_ERROR.value()));
+      return internalServerError(contextualLogger, e);
     }
   }
 
@@ -324,29 +212,11 @@ public class ShippingController {
       Double balance = shippingService.getWalletBalance();
       return ResponseEntity.ok(balance);
     } catch (BadRequestException bre) {
-      contextualLogger.error(bre);
-      return ResponseEntity.badRequest()
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_BAD_REQUEST,
-                  bre.getMessage(),
-                  HttpStatus.BAD_REQUEST.value()));
+      return badRequest(contextualLogger, bre);
     } catch (UnauthorizedException ue) {
-      contextualLogger.error(ue);
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_UNAUTHORIZED,
-                  ue.getMessage(),
-                  HttpStatus.UNAUTHORIZED.value()));
+      return unauthorized(contextualLogger, ue);
     } catch (Exception e) {
-      contextualLogger.error(e);
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_INTERNAL_SERVER_ERROR,
-                  e.getMessage(),
-                  HttpStatus.INTERNAL_SERVER_ERROR.value()));
+      return internalServerError(contextualLogger, e);
     }
   }
 
@@ -375,29 +245,11 @@ public class ShippingController {
     try {
       return ResponseEntity.ok(shippingService.getShipmentsInBatches(paginationBaseRequestModel));
     } catch (BadRequestException bre) {
-      contextualLogger.error(bre);
-      return ResponseEntity.badRequest()
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_BAD_REQUEST,
-                  bre.getMessage(),
-                  HttpStatus.BAD_REQUEST.value()));
+      return badRequest(contextualLogger, bre);
     } catch (UnauthorizedException uae) {
-      contextualLogger.error(uae);
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_UNAUTHORIZED,
-                  uae.getMessage(),
-                  HttpStatus.UNAUTHORIZED.value()));
+      return unauthorized(contextualLogger, uae);
     } catch (Exception e) {
-      contextualLogger.error(e);
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_INTERNAL_SERVER_ERROR,
-                  e.getMessage(),
-                  HttpStatus.INTERNAL_SERVER_ERROR.value()));
+      return internalServerError(contextualLogger, e);
     }
   }
 
@@ -417,35 +269,20 @@ public class ShippingController {
     try {
       return ResponseEntity.ok(shippingService.getShipmentById(shipmentId));
     } catch (BadRequestException bre) {
-      contextualLogger.error(bre);
-      return ResponseEntity.badRequest()
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_BAD_REQUEST,
-                  bre.getMessage(),
-                  HttpStatus.BAD_REQUEST.value()));
+      return badRequest(contextualLogger, bre);
     } catch (NotFoundException nfe) {
-      contextualLogger.error(nfe);
-      return ResponseEntity.status(HttpStatus.NOT_FOUND)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
+      return notFound(contextualLogger, nfe);
     } catch (UnauthorizedException uae) {
-      contextualLogger.error(uae);
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_UNAUTHORIZED,
-                  uae.getMessage(),
-                  HttpStatus.UNAUTHORIZED.value()));
+      return unauthorized(contextualLogger, uae);
     } catch (Exception e) {
-      contextualLogger.error(e);
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_INTERNAL_SERVER_ERROR,
-                  e.getMessage(),
-                  HttpStatus.INTERNAL_SERVER_ERROR.value()));
+      return internalServerError(contextualLogger, e);
     }
+  }
+
+  private String sanitizeForLog(String value) {
+    if (value == null) {
+      return "null";
+    }
+    return value.replace('\n', '_').replace('\r', '_');
   }
 }

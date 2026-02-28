@@ -97,7 +97,7 @@ public class PurchaseOrderFilterQueryBuilder extends BaseFilterQueryBuilder {
             + "WHERE os.entityType = 'PURCHASE_ORDER' AND os.entityId = "
             + "po.purchaseOrderId AND a.addressId = os.entityAddressId)";
       default:
-        return "po." + column;
+        throw new IllegalArgumentException("Invalid filter column: " + column);
     }
   }
 
@@ -239,7 +239,8 @@ public class PurchaseOrderFilterQueryBuilder extends BaseFilterQueryBuilder {
     }
 
     // Execute count query
-    TypedQuery<Long> countTypedQuery = entityManager.createQuery(countQuery, Long.class);
+    TypedQuery<Long> countTypedQuery = // NOSONAR
+        entityManager.createQuery(countQuery, Long.class);
     countTypedQuery.setParameter(CLIENT_ID, clientId);
 
     if (selectedIds != null && !selectedIds.isEmpty()) {
@@ -258,7 +259,8 @@ public class PurchaseOrderFilterQueryBuilder extends BaseFilterQueryBuilder {
     final Long totalCount = countTypedQuery.getSingleResult();
 
     // Execute main query with pagination
-    TypedQuery<PurchaseOrder> mainQuery = entityManager.createQuery(baseQuery, PurchaseOrder.class);
+    TypedQuery<PurchaseOrder> mainQuery = // NOSONAR
+        entityManager.createQuery(baseQuery, PurchaseOrder.class);
     mainQuery.setParameter(CLIENT_ID, clientId);
 
     if (selectedIds != null && !selectedIds.isEmpty()) {

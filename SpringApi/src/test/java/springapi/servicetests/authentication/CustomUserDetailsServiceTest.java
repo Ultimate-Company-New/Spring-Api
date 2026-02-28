@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import java.util.UUID;
@@ -44,7 +43,7 @@ class CustomUserDetailsServiceTest {
     dbUser.setRole("ADMIN");
     dbUser.setIsDeleted(false);
     dbUser.setLocked(false);
-    when(userRepository.findByLoginName(eq("nahush"))).thenReturn(dbUser);
+    when(userRepository.findByLoginName("nahush")).thenReturn(dbUser);
 
     // Act
     UserDetails userDetails = service.loadUserByUsername("nahush");
@@ -73,7 +72,7 @@ class CustomUserDetailsServiceTest {
     dbUser.setRole("USER");
     dbUser.setIsDeleted(true);
     dbUser.setLocked(true);
-    when(userRepository.findByLoginName(eq("locked-user"))).thenReturn(dbUser);
+    when(userRepository.findByLoginName("locked-user")).thenReturn(dbUser);
 
     // Act
     UserDetails userDetails = service.loadUserByUsername("locked-user");
@@ -92,7 +91,7 @@ class CustomUserDetailsServiceTest {
   void loadUserByUsername_s03_userMissingThrowsUsernameNotFoundException_success() {
     // Arrange
     CustomUserDetailsService service = new CustomUserDetailsService(userRepository);
-    when(userRepository.findByLoginName(eq("missing"))).thenReturn(null);
+    when(userRepository.findByLoginName("missing")).thenReturn(null);
 
     // Act
     UsernameNotFoundException exception =

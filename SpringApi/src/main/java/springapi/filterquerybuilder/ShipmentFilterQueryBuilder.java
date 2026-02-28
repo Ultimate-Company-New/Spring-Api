@@ -87,7 +87,7 @@ public class ShipmentFilterQueryBuilder extends BaseFilterQueryBuilder {
       case "updatedAt":
         return "s.updatedAt";
       default:
-        return "s." + column;
+        throw new IllegalArgumentException("Invalid filter column: " + column);
     }
   }
 
@@ -205,7 +205,8 @@ public class ShipmentFilterQueryBuilder extends BaseFilterQueryBuilder {
     }
 
     // Execute count query
-    TypedQuery<Long> countTypedQuery = entityManager.createQuery(countQuery, Long.class);
+    TypedQuery<Long> countTypedQuery = // NOSONAR
+        entityManager.createQuery(countQuery, Long.class);
     countTypedQuery.setParameter(CLIENT_ID, clientId);
 
     if (selectedIds != null && !selectedIds.isEmpty()) {
@@ -220,7 +221,8 @@ public class ShipmentFilterQueryBuilder extends BaseFilterQueryBuilder {
     final Long totalCount = countTypedQuery.getSingleResult();
 
     // Execute main query with pagination
-    TypedQuery<Shipment> mainQuery = entityManager.createQuery(baseQuery, Shipment.class);
+    TypedQuery<Shipment> mainQuery = // NOSONAR
+        entityManager.createQuery(baseQuery, Shipment.class);
     mainQuery.setParameter(CLIENT_ID, clientId);
 
     if (selectedIds != null && !selectedIds.isEmpty()) {

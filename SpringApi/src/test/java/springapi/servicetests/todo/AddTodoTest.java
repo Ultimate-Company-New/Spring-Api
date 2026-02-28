@@ -302,20 +302,7 @@ class AddTodoTest extends TodoServiceTestBase {
   @Test
   @DisplayName("addTodo - Valid Request - Success")
   void addTodo_validRequest_success() {
-    // Arrange
-    TodoRequestModel request = new TodoRequestModel();
-    request.setTask("Test Todo");
-    request.setIsDone(false);
-    Todo savedTodo = new Todo(request, CREATED_USER, TEST_USER_ID);
-    savedTodo.setTodoId(1L);
-    stubTodoRepositorySave(savedTodo);
-    stubUserLogServiceLogDataReturnsTrue();
-
-    // Act
-    assertDoesNotThrow(() -> todoService.addTodo(request));
-
-    // Assert
-    verify(todoRepository).save(any(Todo.class));
+    assertAddTodoSuccess("Test Todo", false);
   }
 
   /*
@@ -326,20 +313,7 @@ class AddTodoTest extends TodoServiceTestBase {
   @Test
   @DisplayName("addTodo - With isDone True - Success")
   void addTodo_withIsDoneTrue_success() {
-    // Arrange
-    TodoRequestModel request = new TodoRequestModel();
-    request.setTask("Test Todo");
-    request.setIsDone(true);
-    Todo savedTodo = new Todo(request, CREATED_USER, TEST_USER_ID);
-    savedTodo.setTodoId(1L);
-    stubTodoRepositorySave(savedTodo);
-    stubUserLogServiceLogDataReturnsTrue();
-
-    // Act
-    assertDoesNotThrow(() -> todoService.addTodo(request));
-
-    // Assert
-    verify(todoRepository).save(any(Todo.class));
+    assertAddTodoSuccess("Test Todo", true);
   }
 
   // ========================================
@@ -463,5 +437,22 @@ class AddTodoTest extends TodoServiceTestBase {
     // Assert
     assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     verify(todoServiceMock, times(1)).addTodo(any(TodoRequestModel.class));
+  }
+
+  private void assertAddTodoSuccess(String task, boolean isDone) {
+    // Arrange
+    TodoRequestModel request = new TodoRequestModel();
+    request.setTask(task);
+    request.setIsDone(isDone);
+    Todo savedTodo = new Todo(request, CREATED_USER, TEST_USER_ID);
+    savedTodo.setTodoId(1L);
+    stubTodoRepositorySave(savedTodo);
+    stubUserLogServiceLogDataReturnsTrue();
+
+    // Act
+    assertDoesNotThrow(() -> todoService.addTodo(request));
+
+    // Assert
+    verify(todoRepository).save(any(Todo.class));
   }
 }

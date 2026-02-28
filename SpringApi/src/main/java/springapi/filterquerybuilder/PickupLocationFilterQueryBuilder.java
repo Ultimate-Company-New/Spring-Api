@@ -65,7 +65,7 @@ public class PickupLocationFilterQueryBuilder extends BaseFilterQueryBuilder {
         return "CONCAT(a.streetAddress, ' ', a.streetAddress2, ' ', a.city, ' ', "
             + "a.state, ' ', a.postalCode)";
       default:
-        return "pl." + column;
+        throw new IllegalArgumentException("Invalid filter column: " + column);
     }
   }
 
@@ -177,7 +177,8 @@ public class PickupLocationFilterQueryBuilder extends BaseFilterQueryBuilder {
     }
 
     // Execute count query
-    TypedQuery<Long> countTypedQuery = entityManager.createQuery(countQuery, Long.class);
+    TypedQuery<Long> countTypedQuery = // NOSONAR
+        entityManager.createQuery(countQuery, Long.class);
     countTypedQuery.setParameter(CLIENT_ID, clientId);
 
     if (selectedIds != null && !selectedIds.isEmpty()) {
@@ -192,7 +193,7 @@ public class PickupLocationFilterQueryBuilder extends BaseFilterQueryBuilder {
     final Long totalCount = countTypedQuery.getSingleResult();
 
     // Execute main query with pagination
-    TypedQuery<PickupLocation> mainQuery =
+    TypedQuery<PickupLocation> mainQuery = // NOSONAR
         entityManager.createQuery(baseQuery, PickupLocation.class);
     mainQuery.setParameter(CLIENT_ID, clientId);
 

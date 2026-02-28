@@ -35,7 +35,7 @@ class UpdatePickupLocationTest extends PickupLocationServiceTestBase {
    */
   @Test
   @DisplayName("Update Pickup Location - Success")
-  void updatePickupLocation_Success_Success() throws Exception {
+  void updatePickupLocation_Success_Success() {
     // Arrange
     PickupLocation existingPickupLocation =
         new PickupLocation(testPickupLocationRequest, CREATED_USER, TEST_CLIENT_ID);
@@ -61,7 +61,7 @@ class UpdatePickupLocationTest extends PickupLocationServiceTestBase {
    */
   @Test
   @DisplayName("Update Pickup Location - Updates ShipRocket ID - Success")
-  void updatePickupLocation_UpdatesShipRocketId_Success() throws Exception {
+  void updatePickupLocation_UpdatesShipRocketId_Success() {
     // Arrange
     PickupLocation existing =
         new PickupLocation(testPickupLocationRequest, CREATED_USER, TEST_CLIENT_ID);
@@ -475,7 +475,7 @@ class UpdatePickupLocationTest extends PickupLocationServiceTestBase {
    */
   @Test
   @DisplayName("Update Pickup Location - Verify Client Isolation - Success")
-  void updatePickupLocation_VerifyClientIsolation_Success() throws Exception {
+  void updatePickupLocation_VerifyClientIsolation_Success() {
     // Arrange
     stubPickupLocationRepositoryFindByIdAndClientId(
         TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID, testPickupLocation);

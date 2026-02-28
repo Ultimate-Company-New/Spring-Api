@@ -2,7 +2,6 @@ package springapi.controllers;
 
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -14,7 +13,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import springapi.ErrorMessages;
 import springapi.exceptions.BadRequestException;
 import springapi.exceptions.NotFoundException;
 import springapi.exceptions.PermissionException;
@@ -23,7 +21,6 @@ import springapi.logging.ContextualLogger;
 import springapi.models.ApiRoutes;
 import springapi.models.Authorizations;
 import springapi.models.requestmodels.UserRequestModel;
-import springapi.models.responsemodels.ErrorResponseModel;
 import springapi.models.responsemodels.PaginationBaseResponseModel;
 import springapi.models.responsemodels.UserResponseModel;
 import springapi.services.UserService;
@@ -46,7 +43,7 @@ import springapi.services.interfaces.UserSubTranslator;
  */
 @RestController
 @RequestMapping("/api/" + ApiRoutes.ApiControllerNames.USER)
-public class UserController {
+public class UserController extends BaseController {
 
   private final UserSubTranslator userService;
   private final ContextualLogger logger;
@@ -72,35 +69,13 @@ public class UserController {
     try {
       return ResponseEntity.ok(userService.getUserById(id));
     } catch (BadRequestException bre) {
-      logger.error(bre);
-      return ResponseEntity.badRequest()
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_BAD_REQUEST,
-                  bre.getMessage(),
-                  HttpStatus.BAD_REQUEST.value()));
+      return badRequest(logger, bre);
     } catch (NotFoundException nfe) {
-      logger.error(nfe);
-      return ResponseEntity.status(HttpStatus.NOT_FOUND)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
+      return notFound(logger, nfe);
     } catch (UnauthorizedException ue) {
-      logger.error(ue);
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_UNAUTHORIZED,
-                  ue.getMessage(),
-                  HttpStatus.UNAUTHORIZED.value()));
+      return unauthorized(logger, ue);
     } catch (Exception e) {
-      logger.error(e);
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_INTERNAL_SERVER_ERROR,
-                  e.getMessage(),
-                  HttpStatus.INTERNAL_SERVER_ERROR.value()));
+      return internalServerError(logger, e);
     }
   }
 
@@ -119,35 +94,13 @@ public class UserController {
     try {
       return ResponseEntity.ok(userService.getUserByEmail(email));
     } catch (BadRequestException bre) {
-      logger.error(bre);
-      return ResponseEntity.badRequest()
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_BAD_REQUEST,
-                  bre.getMessage(),
-                  HttpStatus.BAD_REQUEST.value()));
+      return badRequest(logger, bre);
     } catch (NotFoundException nfe) {
-      logger.error(nfe);
-      return ResponseEntity.status(HttpStatus.NOT_FOUND)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
+      return notFound(logger, nfe);
     } catch (UnauthorizedException ue) {
-      logger.error(ue);
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_UNAUTHORIZED,
-                  ue.getMessage(),
-                  HttpStatus.UNAUTHORIZED.value()));
+      return unauthorized(logger, ue);
     } catch (Exception e) {
-      logger.error(e);
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_INTERNAL_SERVER_ERROR,
-                  e.getMessage(),
-                  HttpStatus.INTERNAL_SERVER_ERROR.value()));
+      return internalServerError(logger, e);
     }
   }
 
@@ -170,39 +123,15 @@ public class UserController {
       userService.createUser(user);
       return ResponseEntity.ok().build();
     } catch (BadRequestException bre) {
-      logger.error(bre);
-      return ResponseEntity.badRequest()
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_BAD_REQUEST,
-                  bre.getMessage(),
-                  HttpStatus.BAD_REQUEST.value()));
+      return badRequest(logger, bre);
     } catch (NotFoundException nfe) {
-      logger.error(nfe);
-      return ResponseEntity.status(HttpStatus.NOT_FOUND)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
+      return notFound(logger, nfe);
     } catch (UnauthorizedException ue) {
-      logger.error(ue);
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_UNAUTHORIZED,
-                  ue.getMessage(),
-                  HttpStatus.UNAUTHORIZED.value()));
+      return unauthorized(logger, ue);
     } catch (PermissionException pe) {
-      logger.error(pe);
-      return ResponseEntity.status(HttpStatus.FORBIDDEN)
-          .body(new ErrorResponseModel("Forbidden", pe.getMessage(), HttpStatus.FORBIDDEN.value()));
+      return forbidden(logger, pe);
     } catch (Exception e) {
-      logger.error(e);
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_INTERNAL_SERVER_ERROR,
-                  e.getMessage(),
-                  HttpStatus.INTERNAL_SERVER_ERROR.value()));
+      return internalServerError(logger, e);
     }
   }
 
@@ -225,35 +154,13 @@ public class UserController {
       userService.updateUser(user);
       return ResponseEntity.ok().build();
     } catch (BadRequestException bre) {
-      logger.error(bre);
-      return ResponseEntity.badRequest()
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_BAD_REQUEST,
-                  bre.getMessage(),
-                  HttpStatus.BAD_REQUEST.value()));
+      return badRequest(logger, bre);
     } catch (NotFoundException nfe) {
-      logger.error(nfe);
-      return ResponseEntity.status(HttpStatus.NOT_FOUND)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
+      return notFound(logger, nfe);
     } catch (UnauthorizedException ue) {
-      logger.error(ue);
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_UNAUTHORIZED,
-                  ue.getMessage(),
-                  HttpStatus.UNAUTHORIZED.value()));
+      return unauthorized(logger, ue);
     } catch (Exception e) {
-      logger.error(e);
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_INTERNAL_SERVER_ERROR,
-                  e.getMessage(),
-                  HttpStatus.INTERNAL_SERVER_ERROR.value()));
+      return internalServerError(logger, e);
     }
   }
 
@@ -275,35 +182,13 @@ public class UserController {
       userService.toggleUser(id);
       return ResponseEntity.ok().build();
     } catch (BadRequestException bre) {
-      logger.error(bre);
-      return ResponseEntity.badRequest()
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_BAD_REQUEST,
-                  bre.getMessage(),
-                  HttpStatus.BAD_REQUEST.value()));
+      return badRequest(logger, bre);
     } catch (NotFoundException nfe) {
-      logger.error(nfe);
-      return ResponseEntity.status(HttpStatus.NOT_FOUND)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
+      return notFound(logger, nfe);
     } catch (UnauthorizedException ue) {
-      logger.error(ue);
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_UNAUTHORIZED,
-                  ue.getMessage(),
-                  HttpStatus.UNAUTHORIZED.value()));
+      return unauthorized(logger, ue);
     } catch (Exception e) {
-      logger.error(e);
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_INTERNAL_SERVER_ERROR,
-                  e.getMessage(),
-                  HttpStatus.INTERNAL_SERVER_ERROR.value()));
+      return internalServerError(logger, e);
     }
   }
 
@@ -326,35 +211,13 @@ public class UserController {
     try {
       return ResponseEntity.ok(userService.fetchUsersInCarrierInBatches(userRequestModel));
     } catch (BadRequestException bre) {
-      logger.error(bre);
-      return ResponseEntity.badRequest()
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_BAD_REQUEST,
-                  bre.getMessage(),
-                  HttpStatus.BAD_REQUEST.value()));
+      return badRequest(logger, bre);
     } catch (NotFoundException nfe) {
-      logger.error(nfe);
-      return ResponseEntity.status(HttpStatus.NOT_FOUND)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
+      return notFound(logger, nfe);
     } catch (UnauthorizedException ue) {
-      logger.error(ue);
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_UNAUTHORIZED,
-                  ue.getMessage(),
-                  HttpStatus.UNAUTHORIZED.value()));
+      return unauthorized(logger, ue);
     } catch (Exception e) {
-      logger.error(e);
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_INTERNAL_SERVER_ERROR,
-                  e.getMessage(),
-                  HttpStatus.INTERNAL_SERVER_ERROR.value()));
+      return internalServerError(logger, e);
     }
   }
 
@@ -374,35 +237,13 @@ public class UserController {
       userService.confirmEmail(userId, token);
       return ResponseEntity.ok("Email confirmed successfully");
     } catch (BadRequestException bre) {
-      logger.error(bre);
-      return ResponseEntity.badRequest()
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_BAD_REQUEST,
-                  bre.getMessage(),
-                  HttpStatus.BAD_REQUEST.value()));
+      return badRequest(logger, bre);
     } catch (NotFoundException nfe) {
-      logger.error(nfe);
-      return ResponseEntity.status(HttpStatus.NOT_FOUND)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
+      return notFound(logger, nfe);
     } catch (UnauthorizedException ue) {
-      logger.error(ue);
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_UNAUTHORIZED,
-                  ue.getMessage(),
-                  HttpStatus.UNAUTHORIZED.value()));
+      return unauthorized(logger, ue);
     } catch (Exception e) {
-      logger.error(e);
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_INTERNAL_SERVER_ERROR,
-                  e.getMessage(),
-                  HttpStatus.INTERNAL_SERVER_ERROR.value()));
+      return internalServerError(logger, e);
     }
   }
 
@@ -422,35 +263,13 @@ public class UserController {
     try {
       return ResponseEntity.ok(userService.getAllPermissions());
     } catch (BadRequestException bre) {
-      logger.error(bre);
-      return ResponseEntity.badRequest()
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_BAD_REQUEST,
-                  bre.getMessage(),
-                  HttpStatus.BAD_REQUEST.value()));
+      return badRequest(logger, bre);
     } catch (NotFoundException nfe) {
-      logger.error(nfe);
-      return ResponseEntity.status(HttpStatus.NOT_FOUND)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
+      return notFound(logger, nfe);
     } catch (UnauthorizedException ue) {
-      logger.error(ue);
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_UNAUTHORIZED,
-                  ue.getMessage(),
-                  HttpStatus.UNAUTHORIZED.value()));
+      return unauthorized(logger, ue);
     } catch (Exception e) {
-      logger.error(e);
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_INTERNAL_SERVER_ERROR,
-                  e.getMessage(),
-                  HttpStatus.INTERNAL_SERVER_ERROR.value()));
+      return internalServerError(logger, e);
     }
   }
 
@@ -489,29 +308,11 @@ public class UserController {
       // Return 200 OK - processing will continue in background
       return ResponseEntity.ok().build();
     } catch (BadRequestException bre) {
-      logger.error(bre);
-      return ResponseEntity.badRequest()
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_BAD_REQUEST,
-                  bre.getMessage(),
-                  HttpStatus.BAD_REQUEST.value()));
+      return badRequest(logger, bre);
     } catch (UnauthorizedException ue) {
-      logger.error(ue);
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_UNAUTHORIZED,
-                  ue.getMessage(),
-                  HttpStatus.UNAUTHORIZED.value()));
+      return unauthorized(logger, ue);
     } catch (Exception e) {
-      logger.error(e);
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_INTERNAL_SERVER_ERROR,
-                  e.getMessage(),
-                  HttpStatus.INTERNAL_SERVER_ERROR.value()));
+      return internalServerError(logger, e);
     }
   }
 }

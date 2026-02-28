@@ -3,7 +3,6 @@ package springapi.servicetests.authentication;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -85,12 +84,11 @@ class JwtAuthenticationFilterTest {
         new TestableJwtAuthenticationFilter(jwtTokenProvider, userDetailsService);
     when(request.getMethod()).thenReturn("GET");
     when(request.getHeader("Authorization")).thenReturn("Bearer jwt-token");
-    when(jwtTokenProvider.getUserNameFromToken(eq("jwt-token"))).thenReturn("nahush@example.com");
+    when(jwtTokenProvider.getUserNameFromToken("jwt-token")).thenReturn("nahush@example.com");
 
     UserDetails userDetails = new User("nahush@example.com", "password", List.of());
-    when(userDetailsService.loadUserByUsername(eq("nahush@example.com"))).thenReturn(userDetails);
-    when(jwtTokenProvider.validateToken(eq("jwt-token"), eq("nahush@example.com")))
-        .thenReturn(true);
+    when(userDetailsService.loadUserByUsername("nahush@example.com")).thenReturn(userDetails);
+    when(jwtTokenProvider.validateToken("jwt-token", "nahush@example.com")).thenReturn(true);
 
     // Act
     filter.doFilterInternalPublic(request, response, filterChain);
@@ -118,7 +116,7 @@ class JwtAuthenticationFilterTest {
         new TestableJwtAuthenticationFilter(jwtTokenProvider, userDetailsService);
     when(request.getMethod()).thenReturn("GET");
     when(request.getHeader("Authorization")).thenReturn("Bearer jwt-token");
-    when(jwtTokenProvider.getUserNameFromToken(eq("jwt-token")))
+    when(jwtTokenProvider.getUserNameFromToken("jwt-token"))
         .thenThrow(new RuntimeException("bad token"));
 
     // Act
@@ -143,12 +141,11 @@ class JwtAuthenticationFilterTest {
         new TestableJwtAuthenticationFilter(jwtTokenProvider, userDetailsService);
     when(request.getMethod()).thenReturn("GET");
     when(request.getHeader("Authorization")).thenReturn("Bearer jwt-token");
-    when(jwtTokenProvider.getUserNameFromToken(eq("jwt-token"))).thenReturn("nahush@example.com");
+    when(jwtTokenProvider.getUserNameFromToken("jwt-token")).thenReturn("nahush@example.com");
 
     UserDetails userDetails = new User("nahush@example.com", "password", List.of());
-    when(userDetailsService.loadUserByUsername(eq("nahush@example.com"))).thenReturn(userDetails);
-    when(jwtTokenProvider.validateToken(eq("jwt-token"), eq("nahush@example.com")))
-        .thenReturn(false);
+    when(userDetailsService.loadUserByUsername("nahush@example.com")).thenReturn(userDetails);
+    when(jwtTokenProvider.validateToken("jwt-token", "nahush@example.com")).thenReturn(false);
 
     // Act
     filter.doFilterInternalPublic(request, response, filterChain);
@@ -172,7 +169,7 @@ class JwtAuthenticationFilterTest {
         new TestableJwtAuthenticationFilter(jwtTokenProvider, userDetailsService);
     when(request.getMethod()).thenReturn("GET");
     when(request.getHeader("Authorization")).thenReturn("Bearer jwt-token");
-    when(jwtTokenProvider.getUserNameFromToken(eq("jwt-token"))).thenReturn("nahush@example.com");
+    when(jwtTokenProvider.getUserNameFromToken("jwt-token")).thenReturn("nahush@example.com");
 
     UsernamePasswordAuthenticationToken existingAuth =
         new UsernamePasswordAuthenticationToken("existing-user", null, List.of());

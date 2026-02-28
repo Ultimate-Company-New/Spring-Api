@@ -30,6 +30,7 @@ public class BrevoEmailHelper implements EmailHelperContract {
   private final String fromAddress;
   private final String senderName;
   private final String sendGridApiKey; // Stores Brevo API key (passed from DB as sendgridApiKey)
+  private HttpClient httpClient;
 
   /** Initializes BrevoEmailHelper. */
   public BrevoEmailHelper(String fromAddress, String senderName, String sendgridApiKey) {
@@ -165,9 +166,8 @@ public class BrevoEmailHelper implements EmailHelperContract {
               .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
               .build();
 
-      HttpClient client = HttpClient.newHttpClient();
       HttpResponse<String> response =
-          client.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+          getHttpClient().send(httpRequest, HttpResponse.BodyHandlers.ofString());
       int code = response.statusCode();
 
       if (code >= 200 && code < 300) {
@@ -177,6 +177,10 @@ public class BrevoEmailHelper implements EmailHelperContract {
           ErrorMessages.EmailErrorMessages.ER001 + ": " + response.body());
     } catch (BadRequestException e) {
       throw e;
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new BadRequestException(
+          ErrorMessages.EmailErrorMessages.ER001 + ": Request interrupted");
     } catch (Exception e) {
       throw new BadRequestException(ErrorMessages.EmailErrorMessages.ER001 + ": " + e.getMessage());
     }
@@ -211,9 +215,8 @@ public class BrevoEmailHelper implements EmailHelperContract {
               .DELETE()
               .build();
 
-      HttpClient client = HttpClient.newHttpClient();
       HttpResponse<String> response =
-          client.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+          getHttpClient().send(httpRequest, HttpResponse.BodyHandlers.ofString());
       int code = response.statusCode();
 
       if (code >= 200 && code < 300) {
@@ -223,8 +226,19 @@ public class BrevoEmailHelper implements EmailHelperContract {
           ErrorMessages.EmailErrorMessages.ER003 + ": " + response.body());
     } catch (BadRequestException e) {
       throw e;
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new BadRequestException(
+          ErrorMessages.EmailErrorMessages.ER003 + ": Request interrupted");
     } catch (Exception e) {
       throw new BadRequestException(ErrorMessages.EmailErrorMessages.ER003 + ": " + e.getMessage());
     }
+  }
+
+  private HttpClient getHttpClient() {
+    if (httpClient == null) {
+      httpClient = HttpClient.newHttpClient();
+    }
+    return httpClient;
   }
 }

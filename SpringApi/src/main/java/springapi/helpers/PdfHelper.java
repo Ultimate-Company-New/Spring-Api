@@ -31,13 +31,7 @@ public class PdfHelper {
    */
   public static byte[] convertPurchaseOrderHtmlToPdf(String htmlContent)
       throws IOException, DocumentException {
-
-    ByteArrayOutputStream os = new ByteArrayOutputStream();
-    ITextRenderer renderer = new ITextRenderer();
-    renderer.setDocumentFromString(htmlContent);
-    renderer.layout();
-    renderer.createPDF(os);
-    return os.toByteArray();
+    return generatePdf(htmlContent);
   }
 
   /**
@@ -49,12 +43,17 @@ public class PdfHelper {
    * @throws IOException if PDF generation fails
    */
   public static byte[] convertHtmlToPdf(String htmlContent) throws DocumentException, IOException {
-    ByteArrayOutputStream os = new ByteArrayOutputStream();
-    ITextRenderer renderer = new ITextRenderer();
-    renderer.setDocumentFromString(htmlContent);
-    renderer.layout();
-    renderer.createPDF(os);
-    return os.toByteArray();
+    return generatePdf(htmlContent);
+  }
+
+  private static byte[] generatePdf(String htmlContent) throws IOException, DocumentException {
+    try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
+      ITextRenderer renderer = new ITextRenderer();
+      renderer.setDocumentFromString(htmlContent);
+      renderer.layout();
+      renderer.createPDF(os);
+      return os.toByteArray();
+    }
   }
 
   /**

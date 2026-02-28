@@ -790,7 +790,10 @@ public class UserService extends BaseService implements UserSubTranslator {
   private void sendUserConfirmationEmail(User savedUser, String password) {
     Long clientId = getClientId();
     ClientResponseModel clientDetails = clientService.getClientById(clientId);
-    Client client = clientRepository.findById(clientId).get();
+    Client client =
+        clientRepository
+            .findById(clientId)
+            .orElseThrow(() -> new NotFoundException(ErrorMessages.ClientErrorMessages.INVALID_ID));
 
     EmailTemplates emailTemplates =
         new EmailTemplates(

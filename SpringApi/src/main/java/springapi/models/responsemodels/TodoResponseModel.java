@@ -37,19 +37,19 @@ public class TodoResponseModel {
   /**
    * Constructor to create response model from database entity.
    *
-   * @param todo The task item entity
+   * @param todoEntity The task item entity
    */
-  public TodoResponseModel(Todo todo) {
-    if (todo != null) {
-      this.todoId = todo.getTodoId();
-      this.task = todo.getTask();
-      this.isDone = todo.getIsDone();
-      this.userId = todo.getUserId();
-      this.createdAt = todo.getCreatedAt();
-      this.createdUser = todo.getCreatedUser();
-      this.updatedAt = todo.getUpdatedAt();
-      this.modifiedUser = todo.getModifiedUser();
-      this.notes = todo.getNotes();
+  public TodoResponseModel(Todo todoEntity) {
+    if (todoEntity != null) {
+      this.todoId = todoEntity.getTodoId();
+      this.task = todoEntity.getTask();
+      this.isDone = todoEntity.getIsDone();
+      this.userId = todoEntity.getUserId();
+      this.createdAt = todoEntity.getCreatedAt();
+      this.createdUser = todoEntity.getCreatedUser();
+      this.updatedAt = todoEntity.getUpdatedAt();
+      this.modifiedUser = todoEntity.getModifiedUser();
+      this.notes = todoEntity.getNotes();
 
       // Compute additional fields
       this.taskPreview = buildTaskPreview();

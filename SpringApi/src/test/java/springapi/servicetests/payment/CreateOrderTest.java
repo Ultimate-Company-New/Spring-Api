@@ -85,7 +85,7 @@ class CreateOrderTest extends PaymentServiceTestBase {
       assertEquals("Alice Vendor", savedPayment.getCustomerName());
       assertEquals("alice@example.com", savedPayment.getCustomerEmail());
       assertEquals("9999999999", savedPayment.getCustomerPhone());
-      assertTrue(Boolean.TRUE.equals(savedPayment.getIsTestPayment()));
+      assertEquals(Boolean.TRUE, savedPayment.getIsTestPayment());
       assertNotNull(capturedRazorpayOrderCreateRequest);
       assertEquals(
           TEST_PO_ID.toString(),

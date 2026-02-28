@@ -421,10 +421,9 @@ public class PickupLocationService extends BaseService implements PickupLocation
     }
 
     // Save the updated pickup location to database
-    updatedPickupLocation = pickupLocationRepository.save(updatedPickupLocation);
-    if (updatedPickupLocation == null) {
-      updatedPickupLocation = existingPickupLocation;
-    }
+    PickupLocation savedPickupLocation = pickupLocationRepository.save(updatedPickupLocation);
+    updatedPickupLocation =
+        resolveUpdatedPickupLocation(savedPickupLocation, existingPickupLocation);
 
     // Update product mappings if provided (delete existing and recreate)
     if (pickupLocationRequestModel.getProductMappings() != null) {
@@ -746,11 +745,9 @@ public class PickupLocationService extends BaseService implements PickupLocation
    * @param createdUser The username to set as creator
    * @param clientId The client ID for this operation
    * @return The created pickup location ID
-   * @throws Exception if creation fails
    */
   private Long createPickupLocationInternal(
-      PickupLocationRequestModel pickupLocationRequestModel, String createdUser, Long clientId)
-      throws Exception {
+      PickupLocationRequestModel pickupLocationRequestModel, String createdUser, Long clientId) {
     // Validate request
     validatePickupLocationRequest(pickupLocationRequestModel, true);
 
@@ -791,6 +788,14 @@ public class PickupLocationService extends BaseService implements PickupLocation
         createdUser);
 
     return pickupLocation.getPickupLocationId();
+  }
+
+  private PickupLocation resolveUpdatedPickupLocation(
+      PickupLocation savedPickupLocation, PickupLocation existingPickupLocation) {
+    if (savedPickupLocation != null) {
+      return savedPickupLocation;
+    }
+    return existingPickupLocation;
   }
 
   /**

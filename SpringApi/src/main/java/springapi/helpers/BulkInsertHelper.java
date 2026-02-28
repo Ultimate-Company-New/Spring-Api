@@ -151,7 +151,7 @@ public class BulkInsertHelper {
       htmlContent
           .append("<div style='font-size: 32px; font-weight: bold; color: #667eea;'>")
           .append(response.getTotalRequested())
-          .append("</div>");
+          .append(DIV_END);
       htmlContent
           .append("<div style='color: #666; margin-top: 5px;'>Total Requested")
           .append(DIV_END);
@@ -162,7 +162,7 @@ public class BulkInsertHelper {
       htmlContent
           .append("<div style='font-size: 32px; font-weight: bold; color: #10b981;'>")
           .append(response.getSuccessCount())
-          .append("</div>");
+          .append(DIV_END);
       htmlContent.append("<div style='color: #666; margin-top: 5px;'>✅ Succeeded").append(DIV_END);
       htmlContent.append(DIV_END);
 
@@ -171,7 +171,7 @@ public class BulkInsertHelper {
       htmlContent
           .append("<div style='font-size: 32px; font-weight: bold; color: #ef4444;'>")
           .append(response.getFailureCount())
-          .append("</div>");
+          .append(DIV_END);
       htmlContent.append("<div style='color: #666; margin-top: 5px;'>❌ Failed").append(DIV_END);
       htmlContent.append(DIV_END);
 
@@ -402,7 +402,7 @@ public class BulkInsertHelper {
       htmlContent
           .append("<div style='font-size: 32px; font-weight: bold; color: #667eea;'>")
           .append(response.getTotalRequested())
-          .append("</div>");
+          .append(DIV_END);
       htmlContent
           .append("<div style='color: #666; margin-top: 5px;'>Total Requested")
           .append(DIV_END);
@@ -413,7 +413,7 @@ public class BulkInsertHelper {
       htmlContent
           .append("<div style='font-size: 32px; font-weight: bold; color: #10b981;'>")
           .append(response.getSuccessCount())
-          .append("</div>");
+          .append(DIV_END);
       htmlContent.append("<div style='color: #666; margin-top: 5px;'>✅ Succeeded").append(DIV_END);
       htmlContent.append(DIV_END);
 
@@ -422,7 +422,7 @@ public class BulkInsertHelper {
       htmlContent
           .append("<div style='font-size: 32px; font-weight: bold; color: #ef4444;'>")
           .append(response.getFailureCount())
-          .append("</div>");
+          .append(DIV_END);
       htmlContent.append("<div style='color: #666; margin-top: 5px;'>❌ Failed").append(DIV_END);
       htmlContent.append(DIV_END);
 

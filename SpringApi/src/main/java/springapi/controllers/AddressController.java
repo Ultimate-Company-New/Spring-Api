@@ -12,14 +12,12 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import springapi.ErrorMessages;
 import springapi.exceptions.BadRequestException;
 import springapi.exceptions.NotFoundException;
 import springapi.logging.ContextualLogger;
 import springapi.models.ApiRoutes;
 import springapi.models.Authorizations;
 import springapi.models.requestmodels.AddressRequestModel;
-import springapi.models.responsemodels.ErrorResponseModel;
 import springapi.services.interfaces.AddressSubTranslator;
 
 /**
@@ -36,7 +34,7 @@ import springapi.services.interfaces.AddressSubTranslator;
  */
 @RestController
 @RequestMapping("/api/" + ApiRoutes.ApiControllerNames.ADDRESS)
-public class AddressController {
+public class AddressController extends BaseController {
   private static final ContextualLogger logger =
       ContextualLogger.getLogger(AddressController.class);
   private final AddressSubTranslator addressService;
@@ -63,27 +61,11 @@ public class AddressController {
     try {
       return ResponseEntity.ok(addressService.getAddressById(id));
     } catch (BadRequestException bre) {
-      logger.error(bre);
-      return ResponseEntity.badRequest()
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_BAD_REQUEST,
-                  bre.getMessage(),
-                  HttpStatus.BAD_REQUEST.value()));
+      return badRequest(logger, bre);
     } catch (NotFoundException nfe) {
-      logger.error(nfe);
-      return ResponseEntity.status(HttpStatus.NOT_FOUND)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
+      return notFound(logger, nfe);
     } catch (Exception e) {
-      logger.error(e);
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_INTERNAL_SERVER_ERROR,
-                  e.getMessage(),
-                  HttpStatus.INTERNAL_SERVER_ERROR.value()));
+      return internalServerError(logger, e);
     }
   }
 
@@ -95,27 +77,11 @@ public class AddressController {
     try {
       return ResponseEntity.ok(addressService.getAddressByUserId(userId));
     } catch (BadRequestException bre) {
-      logger.error(bre);
-      return ResponseEntity.badRequest()
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_BAD_REQUEST,
-                  bre.getMessage(),
-                  HttpStatus.BAD_REQUEST.value()));
+      return badRequest(logger, bre);
     } catch (NotFoundException nfe) {
-      logger.error(nfe);
-      return ResponseEntity.status(HttpStatus.NOT_FOUND)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
+      return notFound(logger, nfe);
     } catch (Exception e) {
-      logger.error(e);
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_INTERNAL_SERVER_ERROR,
-                  e.getMessage(),
-                  HttpStatus.INTERNAL_SERVER_ERROR.value()));
+      return internalServerError(logger, e);
     }
   }
 
@@ -127,27 +93,11 @@ public class AddressController {
     try {
       return ResponseEntity.ok(addressService.getAddressByClientId(clientId));
     } catch (BadRequestException bre) {
-      logger.error(bre);
-      return ResponseEntity.badRequest()
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_BAD_REQUEST,
-                  bre.getMessage(),
-                  HttpStatus.BAD_REQUEST.value()));
+      return badRequest(logger, bre);
     } catch (NotFoundException nfe) {
-      logger.error(nfe);
-      return ResponseEntity.status(HttpStatus.NOT_FOUND)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
+      return notFound(logger, nfe);
     } catch (Exception e) {
-      logger.error(e);
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_INTERNAL_SERVER_ERROR,
-                  e.getMessage(),
-                  HttpStatus.INTERNAL_SERVER_ERROR.value()));
+      return internalServerError(logger, e);
     }
   }
 
@@ -169,21 +119,9 @@ public class AddressController {
       addressService.insertAddress(addressRequest);
       return ResponseEntity.status(HttpStatus.CREATED).build();
     } catch (BadRequestException bre) {
-      logger.error(bre);
-      return ResponseEntity.badRequest()
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_BAD_REQUEST,
-                  bre.getMessage(),
-                  HttpStatus.BAD_REQUEST.value()));
+      return badRequest(logger, bre);
     } catch (Exception e) {
-      logger.error(e);
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_INTERNAL_SERVER_ERROR,
-                  e.getMessage(),
-                  HttpStatus.INTERNAL_SERVER_ERROR.value()));
+      return internalServerError(logger, e);
     }
   }
 
@@ -208,27 +146,11 @@ public class AddressController {
       addressService.updateAddress(addressRequest);
       return ResponseEntity.ok().build();
     } catch (BadRequestException bre) {
-      logger.error(bre);
-      return ResponseEntity.badRequest()
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_BAD_REQUEST,
-                  bre.getMessage(),
-                  HttpStatus.BAD_REQUEST.value()));
+      return badRequest(logger, bre);
     } catch (NotFoundException nfe) {
-      logger.error(nfe);
-      return ResponseEntity.status(HttpStatus.NOT_FOUND)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
+      return notFound(logger, nfe);
     } catch (Exception e) {
-      logger.error(e);
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_INTERNAL_SERVER_ERROR,
-                  e.getMessage(),
-                  HttpStatus.INTERNAL_SERVER_ERROR.value()));
+      return internalServerError(logger, e);
     }
   }
 
@@ -251,27 +173,11 @@ public class AddressController {
       addressService.toggleAddress(id);
       return ResponseEntity.ok().build();
     } catch (BadRequestException bre) {
-      logger.error(bre);
-      return ResponseEntity.badRequest()
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_BAD_REQUEST,
-                  bre.getMessage(),
-                  HttpStatus.BAD_REQUEST.value()));
+      return badRequest(logger, bre);
     } catch (NotFoundException nfe) {
-      logger.error(nfe);
-      return ResponseEntity.status(HttpStatus.NOT_FOUND)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
+      return notFound(logger, nfe);
     } catch (Exception e) {
-      logger.error(e);
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_INTERNAL_SERVER_ERROR,
-                  e.getMessage(),
-                  HttpStatus.INTERNAL_SERVER_ERROR.value()));
+      return internalServerError(logger, e);
     }
   }
 }

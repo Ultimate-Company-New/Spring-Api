@@ -1,7 +1,6 @@
 package springapi.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -12,7 +11,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import springapi.ErrorMessages;
 import springapi.exceptions.BadRequestException;
 import springapi.exceptions.NotFoundException;
 import springapi.exceptions.UnauthorizedException;
@@ -21,7 +19,6 @@ import springapi.models.ApiRoutes;
 import springapi.models.Authorizations;
 import springapi.models.requestmodels.MessageRequestModel;
 import springapi.models.requestmodels.PaginationBaseRequestModel;
-import springapi.models.responsemodels.ErrorResponseModel;
 import springapi.services.interfaces.MessageSubTranslator;
 
 /**
@@ -37,7 +34,7 @@ import springapi.services.interfaces.MessageSubTranslator;
  */
 @RestController
 @RequestMapping("/api/" + ApiRoutes.ApiControllerNames.MESSAGE)
-public class MessageController {
+public class MessageController extends BaseController {
 
   private static final ContextualLogger logger =
       ContextualLogger.getLogger(MessageController.class);
@@ -66,35 +63,13 @@ public class MessageController {
     try {
       return ResponseEntity.ok(messageService.getMessagesInBatches(paginationBaseRequestModel));
     } catch (BadRequestException bre) {
-      logger.error(bre);
-      return ResponseEntity.badRequest()
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_BAD_REQUEST,
-                  bre.getMessage(),
-                  HttpStatus.BAD_REQUEST.value()));
+      return badRequest(logger, bre);
     } catch (NotFoundException nfe) {
-      logger.error(nfe);
-      return ResponseEntity.status(HttpStatus.NOT_FOUND)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
+      return notFound(logger, nfe);
     } catch (UnauthorizedException uae) {
-      logger.error(uae);
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_UNAUTHORIZED,
-                  uae.getMessage(),
-                  HttpStatus.UNAUTHORIZED.value()));
+      return unauthorized(logger, uae);
     } catch (Exception e) {
-      logger.error(e);
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_INTERNAL_SERVER_ERROR,
-                  e.getMessage(),
-                  HttpStatus.INTERNAL_SERVER_ERROR.value()));
+      return internalServerError(logger, e);
     }
   }
 
@@ -115,35 +90,13 @@ public class MessageController {
       messageService.createMessage(messageRequestModel);
       return ResponseEntity.ok().build();
     } catch (BadRequestException bre) {
-      logger.error(bre);
-      return ResponseEntity.badRequest()
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_BAD_REQUEST,
-                  bre.getMessage(),
-                  HttpStatus.BAD_REQUEST.value()));
+      return badRequest(logger, bre);
     } catch (NotFoundException nfe) {
-      logger.error(nfe);
-      return ResponseEntity.status(HttpStatus.NOT_FOUND)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
+      return notFound(logger, nfe);
     } catch (UnauthorizedException uae) {
-      logger.error(uae);
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_UNAUTHORIZED,
-                  uae.getMessage(),
-                  HttpStatus.UNAUTHORIZED.value()));
+      return unauthorized(logger, uae);
     } catch (Exception e) {
-      logger.error(e);
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_INTERNAL_SERVER_ERROR,
-                  e.getMessage(),
-                  HttpStatus.INTERNAL_SERVER_ERROR.value()));
+      return internalServerError(logger, e);
     }
   }
 
@@ -164,35 +117,13 @@ public class MessageController {
       messageService.updateMessage(messageRequestModel);
       return ResponseEntity.ok().build();
     } catch (BadRequestException bre) {
-      logger.error(bre);
-      return ResponseEntity.badRequest()
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_BAD_REQUEST,
-                  bre.getMessage(),
-                  HttpStatus.BAD_REQUEST.value()));
+      return badRequest(logger, bre);
     } catch (NotFoundException nfe) {
-      logger.error(nfe);
-      return ResponseEntity.status(HttpStatus.NOT_FOUND)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
+      return notFound(logger, nfe);
     } catch (UnauthorizedException uae) {
-      logger.error(uae);
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_UNAUTHORIZED,
-                  uae.getMessage(),
-                  HttpStatus.UNAUTHORIZED.value()));
+      return unauthorized(logger, uae);
     } catch (Exception e) {
-      logger.error(e);
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_INTERNAL_SERVER_ERROR,
-                  e.getMessage(),
-                  HttpStatus.INTERNAL_SERVER_ERROR.value()));
+      return internalServerError(logger, e);
     }
   }
 
@@ -205,35 +136,13 @@ public class MessageController {
       messageService.toggleMessage(id);
       return ResponseEntity.ok().build();
     } catch (BadRequestException bre) {
-      logger.error(bre);
-      return ResponseEntity.badRequest()
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_BAD_REQUEST,
-                  bre.getMessage(),
-                  HttpStatus.BAD_REQUEST.value()));
+      return badRequest(logger, bre);
     } catch (NotFoundException nfe) {
-      logger.error(nfe);
-      return ResponseEntity.status(HttpStatus.NOT_FOUND)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
+      return notFound(logger, nfe);
     } catch (UnauthorizedException uae) {
-      logger.error(uae);
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_UNAUTHORIZED,
-                  uae.getMessage(),
-                  HttpStatus.UNAUTHORIZED.value()));
+      return unauthorized(logger, uae);
     } catch (Exception e) {
-      logger.error(e);
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_INTERNAL_SERVER_ERROR,
-                  e.getMessage(),
-                  HttpStatus.INTERNAL_SERVER_ERROR.value()));
+      return internalServerError(logger, e);
     }
   }
 
@@ -255,35 +164,13 @@ public class MessageController {
       return ResponseEntity.ok(
           messageService.getMessageDetailsById(paginationBaseRequestModel.getId()));
     } catch (BadRequestException bre) {
-      logger.error(bre);
-      return ResponseEntity.badRequest()
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_BAD_REQUEST,
-                  bre.getMessage(),
-                  HttpStatus.BAD_REQUEST.value()));
+      return badRequest(logger, bre);
     } catch (NotFoundException nfe) {
-      logger.error(nfe);
-      return ResponseEntity.status(HttpStatus.NOT_FOUND)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
+      return notFound(logger, nfe);
     } catch (UnauthorizedException uae) {
-      logger.error(uae);
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_UNAUTHORIZED,
-                  uae.getMessage(),
-                  HttpStatus.UNAUTHORIZED.value()));
+      return unauthorized(logger, uae);
     } catch (Exception e) {
-      logger.error(e);
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_INTERNAL_SERVER_ERROR,
-                  e.getMessage(),
-                  HttpStatus.INTERNAL_SERVER_ERROR.value()));
+      return internalServerError(logger, e);
     }
   }
 
@@ -305,35 +192,13 @@ public class MessageController {
     try {
       return ResponseEntity.ok(messageService.getMessagesByUserId(paginationBaseRequestModel));
     } catch (BadRequestException bre) {
-      logger.error(bre);
-      return ResponseEntity.badRequest()
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_BAD_REQUEST,
-                  bre.getMessage(),
-                  HttpStatus.BAD_REQUEST.value()));
+      return badRequest(logger, bre);
     } catch (NotFoundException nfe) {
-      logger.error(nfe);
-      return ResponseEntity.status(HttpStatus.NOT_FOUND)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
+      return notFound(logger, nfe);
     } catch (UnauthorizedException uae) {
-      logger.error(uae);
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_UNAUTHORIZED,
-                  uae.getMessage(),
-                  HttpStatus.UNAUTHORIZED.value()));
+      return unauthorized(logger, uae);
     } catch (Exception e) {
-      logger.error(e);
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_INTERNAL_SERVER_ERROR,
-                  e.getMessage(),
-                  HttpStatus.INTERNAL_SERVER_ERROR.value()));
+      return internalServerError(logger, e);
     }
   }
 
@@ -350,35 +215,13 @@ public class MessageController {
       messageService.setMessageReadByUserIdAndMessageId(userId, messageId);
       return ResponseEntity.ok().build();
     } catch (BadRequestException bre) {
-      logger.error(bre);
-      return ResponseEntity.badRequest()
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_BAD_REQUEST,
-                  bre.getMessage(),
-                  HttpStatus.BAD_REQUEST.value()));
+      return badRequest(logger, bre);
     } catch (NotFoundException nfe) {
-      logger.error(nfe);
-      return ResponseEntity.status(HttpStatus.NOT_FOUND)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
+      return notFound(logger, nfe);
     } catch (UnauthorizedException uae) {
-      logger.error(uae);
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_UNAUTHORIZED,
-                  uae.getMessage(),
-                  HttpStatus.UNAUTHORIZED.value()));
+      return unauthorized(logger, uae);
     } catch (Exception e) {
-      logger.error(e);
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_INTERNAL_SERVER_ERROR,
-                  e.getMessage(),
-                  HttpStatus.INTERNAL_SERVER_ERROR.value()));
+      return internalServerError(logger, e);
     }
   }
 
@@ -399,21 +242,9 @@ public class MessageController {
       int count = messageService.getUnreadMessageCount();
       return ResponseEntity.ok(count);
     } catch (UnauthorizedException uae) {
-      logger.error(uae);
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_UNAUTHORIZED,
-                  uae.getMessage(),
-                  HttpStatus.UNAUTHORIZED.value()));
+      return unauthorized(logger, uae);
     } catch (Exception e) {
-      logger.error(e);
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(
-              new ErrorResponseModel(
-                  ErrorMessages.ERROR_INTERNAL_SERVER_ERROR,
-                  e.getMessage(),
-                  HttpStatus.INTERNAL_SERVER_ERROR.value()));
+      return internalServerError(logger, e);
     }
   }
 }

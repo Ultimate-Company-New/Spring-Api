@@ -2,7 +2,6 @@ package springapi.models.responsemodels;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.Setter;
 import springapi.models.databasemodels.Message;
@@ -104,19 +103,14 @@ public class MessageResponseModel {
 
       // Extract user IDs from MessageUserMap collection
       if (message.getMessageUserMaps() != null && !message.getMessageUserMaps().isEmpty()) {
-        this.userIds =
-            message.getMessageUserMaps().stream()
-                .map(mum -> mum.getUserId())
-                .collect(Collectors.toList());
+        this.userIds = message.getMessageUserMaps().stream().map(mum -> mum.getUserId()).toList();
       }
 
       // Extract group IDs from MessageUserGroupMap collection
       if (message.getMessageUserGroupMaps() != null
           && !message.getMessageUserGroupMaps().isEmpty()) {
         this.userGroupIds =
-            message.getMessageUserGroupMaps().stream()
-                .map(mugm -> mugm.getGroupId())
-                .collect(Collectors.toList());
+            message.getMessageUserGroupMaps().stream().map(mugm -> mugm.getGroupId()).toList();
       }
 
       // Compute additional fields

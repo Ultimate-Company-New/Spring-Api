@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -65,12 +64,12 @@ class AuthorizationTest {
     // Arrange
     Authorization authorization = createAuthorization();
     stubValidTokenAndMapping(2L, 20L);
-    when(jwtTokenProvider.getUserPermissionIds(eq("token-value"))).thenReturn(List.of(101L));
+    when(jwtTokenProvider.getUserPermissionIds("token-value")).thenReturn(List.of(101L));
 
     Permission permission = new Permission();
     permission.setPermissionId(101L);
     permission.setPermissionCode("READ_ONLY");
-    when(permissionRepository.findAllById(eq(List.of(101L)))).thenReturn(List.of(permission));
+    when(permissionRepository.findAllById(List.of(101L))).thenReturn(List.of(permission));
 
     // Act
     boolean allowed = authorization.hasAuthority("WRITE");
@@ -90,7 +89,7 @@ class AuthorizationTest {
     // Arrange
     Authorization authorization = createAuthorization();
     stubValidTokenAndMapping(3L, 30L);
-    when(jwtTokenProvider.getUserPermissionIds(eq("token-value"))).thenReturn(List.of(201L, 202L));
+    when(jwtTokenProvider.getUserPermissionIds("token-value")).thenReturn(List.of(201L, 202L));
 
     Permission read = new Permission();
     read.setPermissionId(201L);
@@ -100,8 +99,7 @@ class AuthorizationTest {
     write.setPermissionId(202L);
     write.setPermissionCode("WRITE");
 
-    when(permissionRepository.findAllById(eq(List.of(201L, 202L))))
-        .thenReturn(List.of(read, write));
+    when(permissionRepository.findAllById(List.of(201L, 202L))).thenReturn(List.of(read, write));
 
     // Act
     boolean allowed = authorization.hasAuthority("READ, WRITE");
@@ -120,8 +118,8 @@ class AuthorizationTest {
     // Arrange
     Authorization authorization = createAuthorization();
     when(request.getHeader("Authorization")).thenReturn("Bearer token-value");
-    when(jwtTokenProvider.getUserIdFromToken(eq("token-value"))).thenReturn(null);
-    when(jwtTokenProvider.getClientIdFromToken(eq("token-value"))).thenReturn(10L);
+    when(jwtTokenProvider.getUserIdFromToken("token-value")).thenReturn(null);
+    when(jwtTokenProvider.getClientIdFromToken("token-value")).thenReturn(10L);
 
     // Act
     PermissionException exception =
@@ -141,9 +139,9 @@ class AuthorizationTest {
     // Arrange
     Authorization authorization = createAuthorization();
     when(request.getHeader("Authorization")).thenReturn("Bearer token-value");
-    when(jwtTokenProvider.getUserIdFromToken(eq("token-value"))).thenReturn(7L);
-    when(jwtTokenProvider.getClientIdFromToken(eq("token-value"))).thenReturn(77L);
-    when(userClientMappingRepository.findByUserIdsAndClientId(eq(List.of(7L)), eq(77L)))
+    when(jwtTokenProvider.getUserIdFromToken("token-value")).thenReturn(7L);
+    when(jwtTokenProvider.getClientIdFromToken("token-value")).thenReturn(77L);
+    when(userClientMappingRepository.findByUserIdsAndClientId(List.of(7L), 77L))
         .thenReturn(List.of());
 
     // Act
@@ -168,7 +166,7 @@ class AuthorizationTest {
     Permission permission = new Permission();
     permission.setPermissionId(301L);
     permission.setPermissionCode("VIEW");
-    when(permissionRepository.findAllById(eq(List.of(301L)))).thenReturn(List.of(permission));
+    when(permissionRepository.findAllById(List.of(301L))).thenReturn(List.of(permission));
 
     // Act
     boolean emptyPermissionIds = authorization.isAllowed("ANY", List.of());
@@ -186,13 +184,13 @@ class AuthorizationTest {
 
   private void stubValidTokenAndMapping(Long userId, Long clientId) {
     when(request.getHeader("Authorization")).thenReturn("Bearer token-value");
-    when(jwtTokenProvider.getUserIdFromToken(eq("token-value"))).thenReturn(userId);
-    when(jwtTokenProvider.getClientIdFromToken(eq("token-value"))).thenReturn(clientId);
+    when(jwtTokenProvider.getUserIdFromToken("token-value")).thenReturn(userId);
+    when(jwtTokenProvider.getClientIdFromToken("token-value")).thenReturn(clientId);
 
     UserClientMapping mapping = new UserClientMapping();
     mapping.setUserId(userId);
     mapping.setClientId(clientId);
-    when(userClientMappingRepository.findByUserIdsAndClientId(eq(List.of(userId)), eq(clientId)))
+    when(userClientMappingRepository.findByUserIdsAndClientId(List.of(userId), clientId))
         .thenReturn(List.of(mapping));
   }
 }

@@ -283,7 +283,7 @@ abstract class PickupLocationServiceTestBase {
         .getPickupLocationById(anyLong());
   }
 
-  protected void stubPickupLocationServiceThrowsUnauthorizedOnCreate() throws Exception {
+  protected void stubPickupLocationServiceThrowsUnauthorizedOnCreate() {
     lenient()
         .doThrow(
             new springapi.exceptions.UnauthorizedException(
@@ -292,11 +292,11 @@ abstract class PickupLocationServiceTestBase {
         .createPickupLocation(any());
   }
 
-  protected void stubPickupLocationServiceCreatePickupLocationDoNothing() throws Exception {
+  protected void stubPickupLocationServiceCreatePickupLocationDoNothing() {
     lenient().doNothing().when(pickupLocationServiceMock).createPickupLocation(any());
   }
 
-  protected void stubPickupLocationServiceThrowsUnauthorizedOnUpdate() throws Exception {
+  protected void stubPickupLocationServiceThrowsUnauthorizedOnUpdate() {
     lenient()
         .doThrow(
             new springapi.exceptions.UnauthorizedException(
@@ -305,7 +305,7 @@ abstract class PickupLocationServiceTestBase {
         .updatePickupLocation(any());
   }
 
-  protected void stubPickupLocationServiceUpdatePickupLocationDoNothing() throws Exception {
+  protected void stubPickupLocationServiceUpdatePickupLocationDoNothing() {
     lenient().doNothing().when(pickupLocationServiceMock).updatePickupLocation(any());
   }
 

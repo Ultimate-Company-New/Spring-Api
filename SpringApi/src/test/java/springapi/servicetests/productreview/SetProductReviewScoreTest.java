@@ -252,7 +252,7 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
     // Assert
     assertEquals(6, testProductReview.getScore());
     assertEquals(previousScore + 1, testProductReview.getScore());
-    assertTrue(testProductReview.getScore() % 2 == 0);
+    assertEquals(0, testProductReview.getScore() % 2);
     verify(productReviewRepository, times(1)).save(testProductReview);
   }
 

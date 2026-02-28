@@ -56,7 +56,7 @@ class CreatePickupLocationTest extends PickupLocationServiceTestBase {
    */
   @Test
   @DisplayName("Create Pickup Location - Success")
-  void createPickupLocation_Success_Success() throws Exception {
+  void createPickupLocation_Success_Success() {
     // Arrange
     stubSuccessfulPickupLocationCreation();
 
@@ -111,7 +111,7 @@ class CreatePickupLocationTest extends PickupLocationServiceTestBase {
    */
   @Test
   @DisplayName("Create Pickup Location - IsDeleted Flag False - Success")
-  void createPickupLocation_IsDeletedFlagFalse_Success() throws Exception {
+  void createPickupLocation_IsDeletedFlagFalse_Success() {
     // Arrange
     testPickupLocationRequest.setIsDeleted(false);
     stubSuccessfulPickupLocationCreation();

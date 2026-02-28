@@ -32,7 +32,36 @@ public class ProductReviewFilterQueryBuilder extends BaseFilterQueryBuilder {
 
   @Override
   protected String mapColumnToField(String column) {
-    return "pr." + column;
+    switch (column) {
+      case "reviewId":
+        return "pr.reviewId";
+      case "ratings":
+        return "pr.ratings";
+      case "score":
+        return "pr.score";
+      case "isDeleted":
+        return "pr.isDeleted";
+      case "review":
+        return "pr.review";
+      case "userId":
+        return "pr.userId";
+      case PRODUCT_ID:
+        return "pr.productId";
+      case "parentId":
+        return "pr.parentId";
+      case "createdUser":
+        return "pr.createdUser";
+      case "modifiedUser":
+        return "pr.modifiedUser";
+      case "createdAt":
+        return "pr.createdAt";
+      case "updatedAt":
+        return "pr.updatedAt";
+      case "notes":
+        return "pr.notes";
+      default:
+        throw new IllegalArgumentException("Invalid filter column: " + column);
+    }
   }
 
   @Override
@@ -136,7 +165,8 @@ public class ProductReviewFilterQueryBuilder extends BaseFilterQueryBuilder {
       countQuery += "AND (" + filterResult.getWhereClause() + ") ";
     }
 
-    TypedQuery<Long> countTypedQuery = entityManager.createQuery(countQuery, Long.class);
+    TypedQuery<Long> countTypedQuery = // NOSONAR
+        entityManager.createQuery(countQuery, Long.class);
     countTypedQuery.setParameter("clientId", clientId);
     if (productId != null) {
       countTypedQuery.setParameter(PRODUCT_ID, productId);
@@ -150,7 +180,8 @@ public class ProductReviewFilterQueryBuilder extends BaseFilterQueryBuilder {
 
     final Long totalCount = countTypedQuery.getSingleResult();
 
-    TypedQuery<ProductReview> mainQuery = entityManager.createQuery(baseQuery, ProductReview.class);
+    TypedQuery<ProductReview> mainQuery = // NOSONAR
+        entityManager.createQuery(baseQuery, ProductReview.class);
     mainQuery.setParameter("clientId", clientId);
     if (productId != null) {
       mainQuery.setParameter(PRODUCT_ID, productId);

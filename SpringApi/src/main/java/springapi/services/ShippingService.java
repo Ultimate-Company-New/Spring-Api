@@ -2586,6 +2586,11 @@ public class ShippingService extends BaseService implements ShippingSubTranslato
       CompletableFuture<Void> allMaxWeights =
           CompletableFuture.allOf(maxWeightFutures.toArray(new CompletableFuture[0]));
       allMaxWeights.get(SHIPPING_API_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      for (String postcode : uniquePickupPostcodes) {
+        routeMaxWeights.putIfAbsent(postcode, MAX_WEIGHT_PER_SHIPMENT);
+      }
     } catch (Exception e) {
       for (String postcode : uniquePickupPostcodes) {
         if (!routeMaxWeights.containsKey(postcode)) {
@@ -2756,6 +2761,8 @@ public class ShippingService extends BaseService implements ShippingSubTranslato
       CompletableFuture<Void> allShipping =
           CompletableFuture.allOf(shippingFutures.values().toArray(new CompletableFuture[0]));
       allShipping.get(SHIPPING_API_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
     } catch (Exception e) {
       // Continue with available results
     }
@@ -2768,6 +2775,9 @@ public class ShippingService extends BaseService implements ShippingSubTranslato
         if (result != null) {
           shippingResults.put(entry.getKey(), result);
         }
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        break;
       } catch (Exception e) {
         // Skip failed lookups
       }

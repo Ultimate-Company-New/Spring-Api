@@ -17,8 +17,7 @@ import springapi.models.databasemodels.Shipment;
  *
  * <p>This model is used for returning purchase order information in API responses. Includes all
  * related entities: OrderSummary (financial breakdown and fulfillment details), Shipments (with
- * products, packages, and courier selections), Address, Products, Pickup Locations, and
- * Attachments.
+ * products, packages, and courier selections), Address, Pickup Locations, and Attachments.
  *
  * @author SpringApi Team
  * @version 1.0
@@ -55,14 +54,6 @@ public class PurchaseOrderResponseModel {
   // Shipment Data (List of shipments with products, packages, and courier selections)
   private List<ShipmentResponseModel> shipments = new ArrayList<>();
 
-  /**
-   * Products extracted from shipments for backward compatibility.
-   *
-   * @deprecated Use `shipments[].products[]` instead.
-   */
-  @Deprecated(since = "2026-02", forRemoval = false)
-  private List<PurchaseOrderProductItem> products;
-
   // Attachments (List of resource details - contains both fileName (key) and URL/base64 (value))
   private List<ResourceResponseModel> attachments;
 
@@ -74,8 +65,7 @@ public class PurchaseOrderResponseModel {
    * related entities including: - OrderSummary (financial breakdown and fulfillment details) -
    * Shipments (with products, packages, and courier selections) - Address (delivery/shipping
    * address from OrderSummary) - Created By User (user who created the purchase order) - Modified
-   * By User (user who last modified the purchase order) - Products (extracted from shipments for
-   * backward compatibility) - Attachments (resources/files)
+   * By User (user who last modified the purchase order) - Attachments (resources/files)
    *
    * @param purchaseOrder The PurchaseOrder entity to convert
    * @param orderSummary The OrderSummary entity (must be loaded with shipments)
@@ -140,9 +130,6 @@ public class PurchaseOrderResponseModel {
       // Initialize collections
       this.attachments = new ArrayList<>();
 
-      // Note: Products are available in shipments, no need for separate products field
-      // Frontend should extract products from shipments.shipments[].products[]
-
       // Extract Resources (attachments)
       if (purchaseOrder.getAttachments() != null && !purchaseOrder.getAttachments().isEmpty()) {
         for (Resources resource : purchaseOrder.getAttachments()) {
@@ -195,7 +182,6 @@ public class PurchaseOrderResponseModel {
       }
 
       // Initialize collections
-      // Note: products field is deprecated - products are available in shipments
       this.attachments = new ArrayList<>();
 
       // Extract Resources (attachments)

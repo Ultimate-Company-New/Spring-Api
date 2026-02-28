@@ -5,8 +5,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.InetAddress;
 import java.net.URI;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
@@ -1028,11 +1030,12 @@ public class ProductService extends BaseService implements ProductSubTranslator 
 
     // It's a URL, fetch and convert to base64
     try {
-      URL url = URI.create(imageData).toURL();
+      URL url = validateExternalImageUrl(imageData).toURL();
       HttpURLConnection connection = (HttpURLConnection) url.openConnection();
       connection.setRequestMethod("GET");
       connection.setConnectTimeout(10000);
       connection.setReadTimeout(10000);
+      connection.setInstanceFollowRedirects(false);
       connection.connect();
 
       int responseCode = connection.getResponseCode();
@@ -1055,11 +1058,49 @@ public class ProductService extends BaseService implements ProductSubTranslator 
         byte[] imageBytes = outputStream.toByteArray();
         // Return just the base64 string (ImgBB doesn't need the data:image prefix)
         return Base64.getEncoder().encodeToString(imageBytes);
+      } finally {
+        connection.disconnect();
       }
     } catch (IOException e) {
       throw new BadRequestException(
           String.format(ErrorMessages.ProductErrorMessages.ER012, imageData));
+    } catch (IllegalArgumentException e) {
+      throw new BadRequestException(
+          String.format(ErrorMessages.ProductErrorMessages.ER012, imageData));
     }
+  }
+
+  private URI validateExternalImageUrl(String imageData) {
+    URI imageUri = URI.create(imageData);
+    String scheme = imageUri.getScheme();
+    String host = imageUri.getHost();
+
+    if (scheme == null
+        || (!"http".equalsIgnoreCase(scheme) && !"https".equalsIgnoreCase(scheme))
+        || host == null
+        || host.isBlank()) {
+      throw new IllegalArgumentException("Invalid image URL");
+    }
+
+    if ("localhost".equalsIgnoreCase(host)) {
+      throw new IllegalArgumentException("Localhost URLs are not allowed");
+    }
+
+    try {
+      for (InetAddress resolvedAddress : InetAddress.getAllByName(host)) {
+        if (resolvedAddress.isAnyLocalAddress()
+            || resolvedAddress.isLoopbackAddress()
+            || resolvedAddress.isSiteLocalAddress()
+            || resolvedAddress.isLinkLocalAddress()
+            || resolvedAddress.isMulticastAddress()) {
+          throw new IllegalArgumentException("Private network URLs are not allowed");
+        }
+      }
+    } catch (UnknownHostException e) {
+      throw new IllegalArgumentException("Image host could not be resolved", e);
+    }
+
+    return imageUri;
   }
 
   /**

@@ -361,7 +361,7 @@ class RecordCashPaymentTest extends PaymentServiceTestBase {
     verify(paymentRepository, times(1)).save(paymentCaptor.capture());
     Payment savedPayment = paymentCaptor.getValue();
     assertEquals(Payment.PaymentMethod.UPI.getValue(), savedPayment.getPaymentMethod());
-    assertTrue(Boolean.TRUE.equals(savedPayment.getIsTestPayment()));
+    assertEquals(Boolean.TRUE, savedPayment.getIsTestPayment());
     assertTrue(response.isSuccess());
     assertEquals(PurchaseOrder.Status.APPROVED.getValue(), response.getPurchaseOrderStatus());
     assertEquals(new BigDecimal("0.00"), testOrderSummary.getPendingAmount());
@@ -399,7 +399,7 @@ class RecordCashPaymentTest extends PaymentServiceTestBase {
     verify(paymentRepository, times(1)).save(paymentCaptor.capture());
     Payment savedPayment = paymentCaptor.getValue();
     assertEquals(Payment.PaymentMethod.CASH.getValue(), savedPayment.getPaymentMethod());
-    assertFalse(Boolean.TRUE.equals(savedPayment.getIsTestPayment()));
+    assertEquals(Boolean.FALSE, savedPayment.getIsTestPayment());
     assertTrue(response.isSuccess());
     assertEquals(
         PurchaseOrder.Status.APPROVED_WITH_PARTIAL_PAYMENT.getValue(),

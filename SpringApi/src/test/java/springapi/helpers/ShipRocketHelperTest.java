@@ -47,11 +47,12 @@ class ShipRocketHelperTest {
     // Arrange
     StubShipRocketHelper helper = new StubShipRocketHelper();
     helper.stubResponse("POST", BASE_URL + "/orders/create/adhoc", "null");
+    Map<String, Object> requestBody = Map.of("order", "value");
 
     // Act
     BadRequestException exception =
         org.junit.jupiter.api.Assertions.assertThrows(
-            BadRequestException.class, () -> helper.createCustomOrder(Map.of("order", "value")));
+            BadRequestException.class, () -> helper.createCustomOrder(requestBody));
 
     // Assert
     assertEquals("ShipRocket create order returned null response", exception.getMessage());
@@ -70,11 +71,12 @@ class ShipRocketHelperTest {
         "POST",
         BASE_URL + "/orders/create/adhoc",
         "{\"order_id\":123,\"shipment_id\":456,\"message\":\"invalid order payload\"}");
+    Map<String, Object> requestBody = Map.of("order", "value");
 
     // Act
     BadRequestException exception =
         org.junit.jupiter.api.Assertions.assertThrows(
-            BadRequestException.class, () -> helper.createCustomOrder(Map.of("order", "value")));
+            BadRequestException.class, () -> helper.createCustomOrder(requestBody));
 
     // Assert
     assertEquals("ShipRocket create order failed: invalid order payload", exception.getMessage());
@@ -90,11 +92,12 @@ class ShipRocketHelperTest {
     // Arrange
     StubShipRocketHelper helper = new StubShipRocketHelper();
     helper.stubResponse("POST", BASE_URL + "/orders/create/adhoc", "{\"shipment_id\":456}");
+    Map<String, Object> requestBody = Map.of("order", "value");
 
     // Act
     BadRequestException exception =
         org.junit.jupiter.api.Assertions.assertThrows(
-            BadRequestException.class, () -> helper.createCustomOrder(Map.of("order", "value")));
+            BadRequestException.class, () -> helper.createCustomOrder(requestBody));
 
     // Assert
     assertEquals(
@@ -112,11 +115,12 @@ class ShipRocketHelperTest {
     // Arrange
     StubShipRocketHelper helper = new StubShipRocketHelper();
     helper.stubResponse("POST", BASE_URL + "/orders/create/adhoc", "{\"order_id\":123}");
+    Map<String, Object> requestBody = Map.of("order", "value");
 
     // Act
     BadRequestException exception =
         org.junit.jupiter.api.Assertions.assertThrows(
-            BadRequestException.class, () -> helper.createCustomOrder(Map.of("order", "value")));
+            BadRequestException.class, () -> helper.createCustomOrder(requestBody));
 
     // Assert
     assertEquals(
@@ -659,21 +663,22 @@ class ShipRocketHelperTest {
     // Arrange
     StubShipRocketHelper helper = new StubShipRocketHelper();
     String endpoint = BASE_URL + "/orders/create/return";
+    Map<String, Object> requestBody = Map.of("key", "value");
 
     helper.stubResponse("POST", endpoint, "null");
     BadRequestException nullResponse =
         org.junit.jupiter.api.Assertions.assertThrows(
-            BadRequestException.class, () -> helper.createReturnOrder(Map.of("key", "value")));
+            BadRequestException.class, () -> helper.createReturnOrder(requestBody));
 
     helper.stubResponse("POST", endpoint, "{\"order_id\":10,\"message\":\"failed request\"}");
     BadRequestException errorMessage =
         org.junit.jupiter.api.Assertions.assertThrows(
-            BadRequestException.class, () -> helper.createReturnOrder(Map.of("key", "value")));
+            BadRequestException.class, () -> helper.createReturnOrder(requestBody));
 
     helper.stubResponse("POST", endpoint, "{\"order_id\":0}");
     BadRequestException falseSuccess =
         org.junit.jupiter.api.Assertions.assertThrows(
-            BadRequestException.class, () -> helper.createReturnOrder(Map.of("key", "value")));
+            BadRequestException.class, () -> helper.createReturnOrder(requestBody));
 
     // Assert
     assertEquals(
@@ -715,18 +720,18 @@ class ShipRocketHelperTest {
     // Arrange
     StubShipRocketHelper helper = new StubShipRocketHelper();
     String endpoint = BASE_URL + "/orders/create/return";
+    Map<String, Object> requestBody = Map.of("key", "value");
 
     helper.stubResponse("POST", endpoint, "{\"order_id\":0}");
     BadRequestException invalid =
         org.junit.jupiter.api.Assertions.assertThrows(
-            BadRequestException.class,
-            () -> helper.createReturnOrderAsJson(Map.of("key", "value")));
+            BadRequestException.class, () -> helper.createReturnOrderAsJson(requestBody));
 
     String successJson = "{\"order_id\":101,\"shipment_id\":88}";
     helper.stubResponse("POST", endpoint, successJson);
 
     // Act
-    String result = helper.createReturnOrderAsJson(Map.of("key", "value"));
+    String result = helper.createReturnOrderAsJson(requestBody);
 
     // Assert
     assertTrue(invalid.getMessage().contains("create return order failed"));
@@ -803,6 +808,7 @@ class ShipRocketHelperTest {
   void cancelOrders_s34_nullOrEmptyThrows_success() {
     // Arrange
     StubShipRocketHelper helper = new StubShipRocketHelper();
+    List<Long> emptyOrderIds = List.of();
 
     // Act
     BadRequestException nullList =
@@ -811,7 +817,7 @@ class ShipRocketHelperTest {
 
     BadRequestException emptyList =
         org.junit.jupiter.api.Assertions.assertThrows(
-            BadRequestException.class, () -> helper.cancelOrders(List.of()));
+            BadRequestException.class, () -> helper.cancelOrders(emptyOrderIds));
 
     // Assert
     assertEquals("Order IDs are required for cancellation", nullList.getMessage());

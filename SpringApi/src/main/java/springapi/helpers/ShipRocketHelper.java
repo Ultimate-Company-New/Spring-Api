@@ -465,7 +465,7 @@ public class ShipRocketHelper {
 
     // ShipRocket expects shipment_id as an array
     HashMap<String, Object> jsonBody = new HashMap<>();
-    jsonBody.put("shipment_id", java.util.List.of(shipmentId));
+    jsonBody.put(SHIPMENT_ID_KEY, java.util.List.of(shipmentId));
 
     // Use base HTTP method
     String responseBody = httpResponseRaw(token, API_URL + "/manifests/generate", "POST", jsonBody);
