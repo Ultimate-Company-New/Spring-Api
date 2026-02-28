@@ -91,68 +91,58 @@ jobs:
             }
 
             const prNumber = parseInt('${{ inputs.pr_number }}');
-            const { data: pull } = await github.rest.pulls.get({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: prNumber
-            });
-            const headSha = pull.head.sha;
 
-            // Fetch existing review threads via GraphQL
-            const query = `query($owner:String!, $repo:String!, $number:Int!) {
-              repository(owner:$owner, name:$repo) {
-                pullRequest(number:$number) {
-                  reviewThreads(first: 100) {
-                    nodes {
-                      id
-                      isResolved
-                      comments(first: 1) {
-                        nodes {
-                          id
-                          body
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }`;
-            const variables = { owner: context.repo.owner, repo: context.repo.repo, number: prNumber };
-            const result = await github.graphql(query, variables);
-            const threads = result.repository.pullRequest.reviewThreads.nodes;
-
-            const existingThread = threads.find(t => t.comments.nodes[0] && t.comments.nodes[0].body.includes(toolIdentifier));
-
-            if (existingThread) {
-              if (existingThread.comments.nodes[0].body === message) {
-                console.log("Comment content is identical. Skipping...");
-              } else {
-                console.log("Updating existing review thread...");
-                await github.rest.pulls.updateReviewComment({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  comment_id: existingThread.comments.nodes[0].id,
-                  body: message
-                });
-                
-                // If the thread was resolved but we have failures again, unresolve it
-                if (existingThread.isResolved && !success) {
-                  await github.graphql(`mutation($id: ID!) { unresolveReviewThread(input: {threadId: $id}) { thread { isResolved } } }`, { id: existingThread.id });
-                }
-              }
-            } else {
-              console.log("Creating new review thread for unit tests...");
-              await github.rest.pulls.createReviewComment({
+            // Search all pages of PR comments for an existing bot comment
+            let page = 1;
+            let existingComment = null;
+            while (true) {
+              const { data: comments } = await github.rest.issues.listComments({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                pull_number: prNumber,
-                body: message,
-                commit_id: headSha,
-                path: 'SpringApi/pom.xml',
-                subject_type: 'file'
+                issue_number: prNumber,
+                per_page: 100,
+                page: page
+              });
+              if (comments.length === 0) break;
+              const found = comments.find(c => c.body && c.body.includes(toolIdentifier));
+              if (found) { existingComment = found; break; }
+              if (comments.length < 100) break;
+              page++;
+            }
+
+            if (existingComment) {
+              if (existingComment.body === message) {
+                // Identical content — do nothing
+                console.log("Results unchanged. Skipping comment.");
+              } else {
+                // Results changed — post a reply that quotes the updated summary
+                console.log("Results changed. Posting reply with updated results.");
+                const replyBody = `> 🔄 **Updated Unit Test Results**\n\n${message}`;
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: prNumber,
+                  body: replyBody
+                });
+                // Also silently update the original so next run compares against the latest state
+                await github.rest.issues.updateComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  comment_id: existingComment.id,
+                  body: message
+                });
+              }
+            } else {
+              // First run — create the initial top-level comment
+              console.log("No existing comment found. Creating initial comment.");
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body: message
               });
             }
 
             if (!success) {
-               core.setFailed('Unit tests failed. Failing the build.');
+              core.setFailed('Unit tests failed. Failing the build.');
             }
