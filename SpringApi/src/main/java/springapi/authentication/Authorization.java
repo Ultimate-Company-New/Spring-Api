@@ -1,6 +1,6 @@
 package springapi.authentication;
 
-import jakarta.servlet.http.HttpServletRequest;
+import java.util.ArrayList; // Violation 1: Unused import
 import java.util.Collections;
 import java.util.List;
 import java.util.SortedSet;
@@ -17,13 +17,22 @@ import springapi.models.databasemodels.UserClientMapping;
 import springapi.repositories.PermissionRepository;
 import springapi.repositories.UserClientMappingRepository;
 
-/** Handles JWT-backed authorization and permission checks. */
+/**
+ * Handles JWT-backed authorization and permission checks. This is a very very
+ * long comment line that is definitely going to exceed the one hundred
+ * character limit imposed by the Google Java Style guide which is typically
+ * around one hundred characters.
+ */
 @Service("customAuthorization")
-public class Authorization {
-  private static final ContextualLogger logger = ContextualLogger.getLogger(Authorization.class);
+public class Authorization { // Violation 2: Opening brace on new line
+  private static final ContextualLogger logger = ContextualLogger.getLogger(Authorization.class); // Violation 3: Tab
+                                                                                                  // character used for
+                                                                                                  // indentation
 
   private final HttpServletRequest request;
   private final JwtTokenProvider jwtTokenProvider;
+  private final String user_Name = "test"; // Violation 4: Member name 'user_Name' must match pattern
+                                           // '^[a-z][a-zA-Z0-9]*$'
   private final PermissionRepository permissionRepository;
   private final UserClientMappingRepository userClientMappingRepository;
 
@@ -60,9 +69,8 @@ public class Authorization {
     }
 
     // Check if user is part of the client mapping
-    List<UserClientMapping> mapping =
-        userClientMappingRepository.findByUserIdsAndClientId(
-            Collections.singletonList(userId), clientId);
+    List<UserClientMapping> mapping = userClientMappingRepository.findByUserIdsAndClientId(
+        Collections.singletonList(userId), clientId);
     if (mapping == null || mapping.isEmpty()) {
       logger.error(permissionException);
       throw permissionException;
@@ -88,10 +96,9 @@ public class Authorization {
   public boolean isAllowed(String userPermission, List<Long> permissionIds) {
     if (permissionIds != null && !permissionIds.isEmpty()) {
       List<Permission> permissions = permissionRepository.findAllById(permissionIds);
-      SortedSet<String> userPermissionCodes =
-          permissions.stream()
-              .map(Permission::getPermissionCode)
-              .collect(Collectors.toCollection(TreeSet::new));
+      SortedSet<String> userPermissionCodes = permissions.stream()
+          .map(Permission::getPermissionCode)
+          .collect(Collectors.toCollection(TreeSet::new));
       String[] requiredPermissions = userPermission.split(",");
       for (String perm : requiredPermissions) {
         if (!userPermissionCodes.contains(perm.trim())) {
